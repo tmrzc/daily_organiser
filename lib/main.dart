@@ -29,25 +29,19 @@ class MyApp extends StatelessWidget {
 
 class MyAppState extends ChangeNotifier {
   List TodoList = [];
+  List Checkboxes = [];
+  bool cos = false;
 
   void addTodo(var title) {
     Map SingleTodo = {};
     SingleTodo['title'] = title;
     TodoList.add(SingleTodo);
+    Checkboxes.add(cos);
     notifyListeners();
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
@@ -117,6 +111,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
+    var _TodoList = appState.TodoList;
 
     return CustomScrollView(
       slivers: <Widget>[
@@ -139,24 +134,30 @@ class _TodoListScreenState extends State<TodoListScreen> {
           ),
         ),
         SliverList(
-          delegate: SliverChildListDelegate(
-            [
-              for (var todo in appState.TodoList)
-                Card(
-                    child: Row(
-                  children: [
-                    Text(todo['title']),
-                    IconButton(
-                      onPressed: () {
-                        setState(() {
-                          appState.TodoList.remove(todo);
-                        });
-                      },
-                      icon: Icon(Icons.delete_outline),
-                    )
-                  ],
-                )),
-            ],
+          delegate: SliverChildBuilderDelegate(
+            (BuildContext context, int index) {
+              return Dismissible(
+                key: ValueKey(_TodoList[index]),
+                child: ListTile(
+                  title: Text('${_TodoList[index]['title']}'),
+                  leading: Checkbox(
+                    value: appState.Checkboxes[index],
+                    onChanged: (bool? value) {
+                      setState(() {
+                        appState.Checkboxes[index] = value!;
+                      });
+                    },
+                  ),
+                ),
+                onDismissed: (DismissDirection direction) {
+                  setState(() {
+                    _TodoList.removeAt(index);
+                    appState.Checkboxes.removeAt(index);
+                  });
+                },
+              );
+            },
+            childCount: _TodoList.length,
           ),
         ),
       ],
