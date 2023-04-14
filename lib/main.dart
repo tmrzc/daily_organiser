@@ -27,16 +27,21 @@ class MyApp extends StatelessWidget {
   }
 }
 
+// ------ CHANGE NOTIFIER ------
+
 class MyAppState extends ChangeNotifier {
   List TodoList = [];
-  List Checkboxes = [];
-  bool cos = false;
+
+  // CREATING NEW TO-DO LIST ELEMENTS
 
   void addTodo(var title) {
+    List TodoCard = [];
     Map SingleTodo = {};
+
     SingleTodo['title'] = title;
-    TodoList.add(SingleTodo);
-    Checkboxes.add(cos);
+    TodoCard.add(false);
+    TodoCard.add(SingleTodo);
+    TodoList.add(TodoCard);
     notifyListeners();
   }
 }
@@ -45,6 +50,8 @@ class MyHomePage extends StatefulWidget {
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
+
+// ------ MAIN SCREEN WITH NAVIGATION BAR ------
 
 class _MyHomePageState extends State<MyHomePage> {
   var currentPageIndex = 0;
@@ -95,6 +102,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
+// ------ TO-DO LIST SCREEN DISPLAYING THE LIST ------
+
 class TodoListScreen extends StatefulWidget {
   const TodoListScreen({
     super.key,
@@ -136,25 +145,42 @@ class _TodoListScreenState extends State<TodoListScreen> {
         SliverList(
           delegate: SliverChildBuilderDelegate(
             (BuildContext context, int index) {
-              return Dismissible(
-                key: ValueKey(_TodoList[index]),
-                child: ListTile(
-                  title: Text('${_TodoList[index]['title']}'),
-                  leading: Checkbox(
-                    value: appState.Checkboxes[index],
-                    onChanged: (bool? value) {
+              return Column(
+                children: [
+                  Dismissible(
+                    key: ValueKey(_TodoList[index]),
+                    direction: DismissDirection.endToStart,
+                    background: Container(
+                      color: const Color.fromARGB(255, 252, 161, 154),
+                      alignment: Alignment.centerRight,
+                      child: const Padding(
+                        padding: EdgeInsets.fromLTRB(0, 0, 20, 0),
+                        child: Icon(Icons.delete_outline),
+                      ),
+                    ),
+                    child: ListTile(
+                      title: Text('${_TodoList[index][1]['title']}'),
+                      leading: Checkbox(
+                        value: _TodoList[index][0],
+                        onChanged: (bool? value) {
+                          setState(() {
+                            _TodoList[index][0] = value!;
+                          });
+                        },
+                      ),
+                    ),
+                    onDismissed: (DismissDirection direction) {
                       setState(() {
-                        appState.Checkboxes[index] = value!;
+                        _TodoList.removeAt(index);
                       });
                     },
                   ),
-                ),
-                onDismissed: (DismissDirection direction) {
-                  setState(() {
-                    _TodoList.removeAt(index);
-                    appState.Checkboxes.removeAt(index);
-                  });
-                },
+                  const Divider(
+                    height: 0,
+                    indent: 20,
+                    endIndent: 20,
+                  ),
+                ],
               );
             },
             childCount: _TodoList.length,
@@ -164,6 +190,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
     );
   }
 }
+
+// ------ DIALOG DISPLAYED FOR ADDING NEW TO-DO'S ------
 
 class NewTodoPopup extends StatefulWidget {
   const NewTodoPopup({
@@ -176,6 +204,9 @@ class NewTodoPopup extends StatefulWidget {
 
 class _NewTodoPopupState extends State<NewTodoPopup> {
   final _titlecontroller = TextEditingController();
+
+  // KEY FOR VALIDATION OF THE FORM
+  final formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -200,33 +231,51 @@ class _NewTodoPopupState extends State<NewTodoPopup> {
               ),
               centerTitle: true,
             ),
-            body: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                const SizedBox(height: 20),
-                Padding(
-                  padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
-                  child: TextField(
-                    controller: _titlecontroller,
-                    decoration: InputDecoration(
-                        border: const OutlineInputBorder(),
-                        labelText: 'Title of a new to do',
-                        suffixIcon: IconButton(
-                          onPressed: () => _titlecontroller.clear(),
-                          icon: const Icon(Icons.clear),
-                        )),
+
+            // FORM FOR ENTERING NEW TO DO DATA
+            body: Form(
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                    child: TextFormField(
+                      textCapitalization: TextCapitalization.sentences,
+                      controller: _titlecontroller,
+                      validator: (String? value) {
+                        return (value != null && value.length < 1)
+                            ? 'Title cannot be empty.'
+                            : null;
+                      },
+                      decoration: InputDecoration(
+                          border: const OutlineInputBorder(),
+                          labelText: 'Title of a new to do',
+                          suffixIcon: IconButton(
+                            onPressed: () => _titlecontroller.clear(),
+                            icon: const Icon(Icons.clear),
+                          )),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 20),
-                TextButton(
-                  onPressed: () {
-                    appState.addTodo(_titlecontroller.text);
-                    _titlecontroller.clear();
-                    Navigator.of(context).pop();
-                  },
-                  child: Text('Submit'),
-                ),
-              ],
+                  const SizedBox(height: 20),
+
+                  // SUBMIT BUTTON FOR SUBMITING NEW TO DO
+                  ElevatedButton(
+                    onPressed: () {
+                      final isValidForm = formKey.currentState!.validate();
+
+                      if (isValidForm) {
+                        appState.addTodo(_titlecontroller.text);
+                        _titlecontroller.clear();
+                        Navigator.of(context).pop();
+                      }
+                    },
+                    child: Text('Submit'),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
