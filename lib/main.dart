@@ -28,7 +28,14 @@ class MyApp extends StatelessWidget {
 }
 
 class MyAppState extends ChangeNotifier {
-  Map TodoList = {};
+  List TodoList = [];
+
+  void addTodo(var title) {
+    Map SingleTodo = {};
+    SingleTodo['title'] = title;
+    TodoList.add(SingleTodo);
+    notifyListeners();
+  }
 }
 
 class MyHomePage extends StatefulWidget {
@@ -94,7 +101,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-class TodoListScreen extends StatelessWidget {
+class TodoListScreen extends StatefulWidget {
   const TodoListScreen({
     super.key,
     required this.theme,
@@ -103,7 +110,14 @@ class TodoListScreen extends StatelessWidget {
   final ThemeData theme;
 
   @override
+  State<TodoListScreen> createState() => _TodoListScreenState();
+}
+
+class _TodoListScreenState extends State<TodoListScreen> {
+  @override
   Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
+
     return CustomScrollView(
       slivers: <Widget>[
         SliverAppBar.medium(
@@ -118,24 +132,31 @@ class TodoListScreen extends StatelessWidget {
               style: GoogleFonts.poppins(
                 fontSize: 30,
                 fontWeight: FontWeight.w400,
-                color: theme.colorScheme.onBackground,
+                color: widget.theme.colorScheme.onBackground,
               ),
             ),
-            background: Container(color: theme.colorScheme.background),
+            background: Container(color: widget.theme.colorScheme.background),
           ),
         ),
         SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (BuildContext context, int index) {
-              return Container(
-                color: index.isOdd ? Colors.white : Colors.black12,
-                height: 100.0,
-                child: Center(
-                  child: Text('$index', textScaleFactor: 5),
-                ),
-              );
-            },
-            childCount: 20,
+          delegate: SliverChildListDelegate(
+            [
+              for (var todo in appState.TodoList)
+                Card(
+                    child: Row(
+                  children: [
+                    Text(todo['title']),
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          appState.TodoList.remove(todo);
+                        });
+                      },
+                      icon: Icon(Icons.delete_outline),
+                    )
+                  ],
+                )),
+            ],
           ),
         ),
       ],
@@ -143,10 +164,17 @@ class TodoListScreen extends StatelessWidget {
   }
 }
 
-class NewTodoPopup extends StatelessWidget {
+class NewTodoPopup extends StatefulWidget {
   const NewTodoPopup({
     super.key,
   });
+
+  @override
+  State<NewTodoPopup> createState() => _NewTodoPopupState();
+}
+
+class _NewTodoPopupState extends State<NewTodoPopup> {
+  final _titlecontroller = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -171,25 +199,37 @@ class NewTodoPopup extends StatelessWidget {
               ),
               centerTitle: true,
             ),
+            body: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                const SizedBox(height: 20),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
+                  child: TextField(
+                    controller: _titlecontroller,
+                    decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        labelText: 'Title of a new to do',
+                        suffixIcon: IconButton(
+                          onPressed: () => _titlecontroller.clear(),
+                          icon: const Icon(Icons.clear),
+                        )),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                TextButton(
+                  onPressed: () {
+                    appState.addTodo(_titlecontroller.text);
+                    _titlecontroller.clear();
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('Submit'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 }
-
-
-/*Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              const Text('This is a fullscreen dialog.'),
-              const SizedBox(height: 15),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text('Close'),
-              ),
-            ],
-          ), */
