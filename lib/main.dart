@@ -27,7 +27,9 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyAppState extends ChangeNotifier {}
+class MyAppState extends ChangeNotifier {
+  Map TodoList = {};
+}
 
 class MyHomePage extends StatefulWidget {
   // This widget is the home page of your application. It is stateful, meaning
@@ -48,16 +50,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    var appState = context.watch<MyAppState>();
+
     var theme = Theme.of(context);
-    var style = theme.textTheme.headlineMedium!.copyWith(
-      color: theme.colorScheme.onBackground,
-    );
 
     return Scaffold(
       bottomNavigationBar: NavigationBar(
@@ -83,42 +78,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       body: <Widget>[
-        CustomScrollView(
-          slivers: <Widget>[
-            SliverAppBar.medium(
-              pinned: true,
-              actions: [
-                NewTodoPopup(),
-              ],
-              flexibleSpace: FlexibleSpaceBar(
-                centerTitle: false,
-                title: Text(
-                  "To do:",
-                  style: GoogleFonts.poppins(
-                    fontSize: 30,
-                    fontWeight: FontWeight.w400,
-                    color: theme.colorScheme.onBackground,
-                  ),
-                ),
-                background: Container(color: theme.colorScheme.background),
-              ),
-            ),
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (BuildContext context, int index) {
-                  return Container(
-                    color: index.isOdd ? Colors.white : Colors.black12,
-                    height: 100.0,
-                    child: Center(
-                      child: Text('$index', textScaleFactor: 5),
-                    ),
-                  );
-                },
-                childCount: 20,
-              ),
-            ),
-          ],
-        ),
+        TodoListScreen(theme: theme),
         Container(
           color: Colors.green,
           alignment: Alignment.center,
@@ -134,6 +94,55 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
+class TodoListScreen extends StatelessWidget {
+  const TodoListScreen({
+    super.key,
+    required this.theme,
+  });
+
+  final ThemeData theme;
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomScrollView(
+      slivers: <Widget>[
+        SliverAppBar.medium(
+          pinned: true,
+          actions: [
+            NewTodoPopup(),
+          ],
+          flexibleSpace: FlexibleSpaceBar(
+            centerTitle: false,
+            title: Text(
+              "To do:",
+              style: GoogleFonts.poppins(
+                fontSize: 30,
+                fontWeight: FontWeight.w400,
+                color: theme.colorScheme.onBackground,
+              ),
+            ),
+            background: Container(color: theme.colorScheme.background),
+          ),
+        ),
+        SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (BuildContext context, int index) {
+              return Container(
+                color: index.isOdd ? Colors.white : Colors.black12,
+                height: 100.0,
+                child: Center(
+                  child: Text('$index', textScaleFactor: 5),
+                ),
+              );
+            },
+            childCount: 20,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class NewTodoPopup extends StatelessWidget {
   const NewTodoPopup({
     super.key,
@@ -141,6 +150,8 @@ class NewTodoPopup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
+
     return IconButton(
       icon: const Icon(
         Icons.add,
@@ -149,7 +160,26 @@ class NewTodoPopup extends StatelessWidget {
       onPressed: () => showDialog<String>(
         context: context,
         builder: (BuildContext context) => Dialog.fullscreen(
-          child: Column(
+          child: Scaffold(
+            appBar: AppBar(
+              title: Text(
+                'Create a new to do',
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+              centerTitle: true,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
+/*Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
@@ -162,9 +192,4 @@ class NewTodoPopup extends StatelessWidget {
                 child: const Text('Close'),
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
+          ), */
