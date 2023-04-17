@@ -79,19 +79,19 @@ class _TodoListScreenState extends State<TodoListScreen> {
                     child: ListTile(
                       title: Text('${_TodoList[index][1]['title']}'),
                       leading: Checkbox(
+                        fillColor: MaterialStateProperty.resolveWith(getColor),
                         value: _TodoList[index][0],
                         onChanged: (bool? value) {
                           setState(() {
                             _TodoList[index][0] = value!;
-                            Timer(Duration(milliseconds: 1000), () {});
-                            appState.switchListsTodo(
-                              _TodoList,
-                              _doneList,
-                              _TodoList[index],
-                              index,
-                            );
-                            //print(appState.TodoList);
-                            //print(appState.DoneList);
+                            Timer(Duration(milliseconds: 250), () {
+                              appState.switchListsTodo(
+                                _TodoList,
+                                _doneList,
+                                _TodoList[index],
+                                index,
+                              );
+                            });
                           });
                         },
                       ),
@@ -102,22 +102,19 @@ class _TodoListScreenState extends State<TodoListScreen> {
                       });
                     },
                   ),
-                  const Divider(
+                  /*const Divider(
                     height: 0,
                     indent: 20,
                     endIndent: 20,
-                  ),
+                  ),*/
                 ],
               );
             },
             childCount: _TodoList.length,
           ),
         ),
-        SliverList(
-          delegate: SliverChildListDelegate([
-            const Divider(),
-          ]),
-        ),
+
+        DividerWithButton(appState, _doneList),
 
         // DONE TASKS PART OF THE LIST
         SliverList(
@@ -139,8 +136,9 @@ class _TodoListScreenState extends State<TodoListScreen> {
                     child: ListTile(
                       title: Text(
                         '${_doneList[index][1]['title']}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           decoration: TextDecoration.lineThrough,
+                          color: widget.theme.disabledColor,
                         ),
                       ),
                       leading: Checkbox(
@@ -149,15 +147,14 @@ class _TodoListScreenState extends State<TodoListScreen> {
                         onChanged: (bool? value) {
                           setState(() {
                             _doneList[index][0] = value!;
-                            Timer(Duration(milliseconds: 1000), () {});
-                            appState.switchListsTodo(
-                              _doneList,
-                              _TodoList,
-                              _doneList[index],
-                              index,
-                            );
-                            //print(appState.TodoList);
-                            //print(appState.DoneList);
+                            Timer(Duration(milliseconds: 250), () {
+                              appState.switchListsTodo(
+                                _doneList,
+                                _TodoList,
+                                _doneList[index],
+                                index,
+                              );
+                            });
                           });
                         },
                       ),
@@ -168,11 +165,11 @@ class _TodoListScreenState extends State<TodoListScreen> {
                       });
                     },
                   ),
-                  const Divider(
+                  /*const Divider(
                     height: 0,
                     indent: 20,
                     endIndent: 20,
-                  ),
+                  ),*/
                 ],
               );
             },
@@ -180,6 +177,47 @@ class _TodoListScreenState extends State<TodoListScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  SliverList DividerWithButton(MyAppState appState, List<dynamic> _doneList) {
+    return SliverList(
+      delegate: SliverChildListDelegate([
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                child: Container(
+                  height: 1,
+                  width: 40,
+                  color: widget.theme.disabledColor,
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    appState.clearlist(_doneList);
+                  });
+                },
+                child: Text(
+                  'Clear all done tasks',
+                  style: TextStyle(
+                    color: widget.theme.disabledColor,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Container(
+                  height: 1,
+                  width: 40,
+                  color: widget.theme.disabledColor,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ]),
     );
   }
 }

@@ -1,8 +1,10 @@
+import 'package:daily_organiser/screens/statsscreen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
 import 'screens/todoscreen.dart';
+import 'screens/trackerscreen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -50,9 +52,15 @@ class MyAppState extends ChangeNotifier {
 
   // FINISHING A TASK AND DELETING IT FROM TO DO'S
   void switchListsTodo(List fromList, List toList, var switchingTask, int idx) {
-    toList.insert(0, switchingTask);
+    //toList.insert(0, switchingTask);
+    toList.add(switchingTask);
     fromList.removeAt(idx);
 
+    notifyListeners();
+  }
+
+  void clearlist(var listtoclear) {
+    listtoclear.clear();
     notifyListeners();
   }
 }
@@ -88,7 +96,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           NavigationDestination(
             icon: Icon(Icons.note_alt),
-            label: 'Journal',
+            label: 'Tracker',
           ),
           NavigationDestination(
             icon: Icon(Icons.line_axis_outlined),
@@ -98,16 +106,8 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: <Widget>[
         TodoListScreen(theme: theme),
-        Container(
-          color: Colors.green,
-          alignment: Alignment.center,
-          child: const Text('Page 2'),
-        ),
-        Container(
-          color: Colors.blue,
-          alignment: Alignment.center,
-          child: const Text('Page 3'),
-        ),
+        TrackerScreen(theme: theme),
+        StatisticsScreen(theme: theme),
       ][currentPageIndex],
     );
   }
