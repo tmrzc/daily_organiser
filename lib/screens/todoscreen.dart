@@ -63,51 +63,41 @@ class _TodoListScreenState extends State<TodoListScreen> {
         SliverList(
           delegate: SliverChildBuilderDelegate(
             (BuildContext context, int index) {
-              return Column(
-                children: [
-                  Dismissible(
-                    key: ValueKey(_TodoList[index]),
-                    direction: DismissDirection.endToStart,
-                    background: Container(
-                      color: const Color.fromARGB(255, 252, 161, 154),
-                      alignment: Alignment.centerRight,
-                      child: const Padding(
-                        padding: EdgeInsets.fromLTRB(0, 0, 20, 0),
-                        child: Icon(Icons.delete_outline),
-                      ),
-                    ),
-                    child: ListTile(
-                      title: Text('${_TodoList[index][1]['title']}'),
-                      leading: Checkbox(
-                        fillColor: MaterialStateProperty.resolveWith(getColor),
-                        value: _TodoList[index][0],
-                        onChanged: (bool? value) {
-                          setState(() {
-                            _TodoList[index][0] = value!;
-                            Timer(Duration(milliseconds: 250), () {
-                              appState.switchListsTodo(
-                                _TodoList,
-                                _doneList,
-                                _TodoList[index],
-                                index,
-                              );
-                            });
-                          });
-                        },
-                      ),
-                    ),
-                    onDismissed: (DismissDirection direction) {
+              return Dismissible(
+                key: ValueKey(_TodoList[index]),
+                direction: DismissDirection.endToStart,
+                background: Container(
+                  color: const Color.fromARGB(255, 252, 161, 154),
+                  alignment: Alignment.centerRight,
+                  child: const Padding(
+                    padding: EdgeInsets.fromLTRB(0, 0, 20, 0),
+                    child: Icon(Icons.delete_outline),
+                  ),
+                ),
+                child: ListTile(
+                  title: Text('${_TodoList[index][1]['title']}'),
+                  leading: Checkbox(
+                    value: _TodoList[index][0],
+                    onChanged: (bool? value) {
                       setState(() {
-                        _TodoList.removeAt(index);
+                        _TodoList[index][0] = value!;
+                        Timer(Duration(milliseconds: 250), () {
+                          appState.switchListsTodo(
+                            _TodoList,
+                            _doneList,
+                            _TodoList[index],
+                            index,
+                          );
+                        });
                       });
                     },
                   ),
-                  /*const Divider(
-                    height: 0,
-                    indent: 20,
-                    endIndent: 20,
-                  ),*/
-                ],
+                ),
+                onDismissed: (DismissDirection direction) {
+                  setState(() {
+                    _TodoList.removeAt(index);
+                  });
+                },
               );
             },
             childCount: _TodoList.length,
@@ -120,57 +110,48 @@ class _TodoListScreenState extends State<TodoListScreen> {
         SliverList(
           delegate: SliverChildBuilderDelegate(
             (BuildContext context, int index) {
-              return Column(
-                children: [
-                  Dismissible(
-                    key: ValueKey(_doneList[index]),
-                    direction: DismissDirection.endToStart,
-                    background: Container(
-                      color: const Color.fromARGB(255, 252, 161, 154),
-                      alignment: Alignment.centerRight,
-                      child: const Padding(
-                        padding: EdgeInsets.fromLTRB(0, 0, 20, 0),
-                        child: Icon(Icons.delete_outline),
-                      ),
+              return Dismissible(
+                key: ValueKey(_doneList[index]),
+                direction: DismissDirection.endToStart,
+                background: Container(
+                  color: const Color.fromARGB(255, 252, 161, 154),
+                  alignment: Alignment.centerRight,
+                  child: const Padding(
+                    padding: EdgeInsets.fromLTRB(0, 0, 20, 0),
+                    child: Icon(Icons.delete_outline),
+                  ),
+                ),
+                child: ListTile(
+                  title: Text(
+                    '${_doneList[index][1]['title']}',
+                    style: TextStyle(
+                      decoration: TextDecoration.lineThrough,
+                      color: widget.theme.disabledColor,
                     ),
-                    child: ListTile(
-                      title: Text(
-                        '${_doneList[index][1]['title']}',
-                        style: TextStyle(
-                          decoration: TextDecoration.lineThrough,
-                          color: widget.theme.disabledColor,
-                        ),
-                      ),
-                      leading: Checkbox(
-                        fillColor: MaterialStateProperty.resolveWith(getColor),
-                        value: _doneList[index][0],
-                        onChanged: (bool? value) {
-                          setState(() {
-                            _doneList[index][0] = value!;
-                            Timer(Duration(milliseconds: 250), () {
-                              appState.switchListsTodo(
-                                _doneList,
-                                _TodoList,
-                                _doneList[index],
-                                index,
-                              );
-                            });
-                          });
-                        },
-                      ),
-                    ),
-                    onDismissed: (DismissDirection direction) {
+                  ),
+                  leading: Checkbox(
+                    fillColor: MaterialStateProperty.resolveWith(getColor),
+                    value: _doneList[index][0],
+                    onChanged: (bool? value) {
                       setState(() {
-                        _doneList.removeAt(index);
+                        _doneList[index][0] = value!;
+                        Timer(Duration(milliseconds: 250), () {
+                          appState.switchListsTodo(
+                            _doneList,
+                            _TodoList,
+                            _doneList[index],
+                            index,
+                          );
+                        });
                       });
                     },
                   ),
-                  /*const Divider(
-                    height: 0,
-                    indent: 20,
-                    endIndent: 20,
-                  ),*/
-                ],
+                ),
+                onDismissed: (DismissDirection direction) {
+                  setState(() {
+                    _doneList.removeAt(index);
+                  });
+                },
               );
             },
             childCount: _doneList.length,

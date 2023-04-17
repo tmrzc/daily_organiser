@@ -34,8 +34,71 @@ class MyApp extends StatelessWidget {
 // ------ CHANGE NOTIFIER ------
 
 class MyAppState extends ChangeNotifier {
-  late List TodoList = [];
+  late List TodoList = [
+    [
+      false,
+      {'title': 'Wyprowadzić psa'}
+    ],
+    [
+      false,
+      {'title': 'Rozładować zmywarkę'}
+    ],
+    [
+      false,
+      {'title': 'Wynieść śmieci'}
+    ],
+    [
+      false,
+      {'title': 'Posprzątać pokój'}
+    ],
+    [
+      false,
+      {'title': 'Zrobić obiad'}
+    ],
+    [
+      false,
+      {'title': 'Pójść na siłownię'}
+    ]
+  ];
   late List DoneList = [];
+
+  List trackerColors = [
+    Color.fromARGB(255, 147, 166, 144),
+    Color.fromARGB(255, 179, 203, 255),
+    Color.fromARGB(255, 221, 231, 166),
+    Color.fromARGB(255, 233, 178, 175),
+    Color.fromARGB(255, 213, 181, 223),
+    Color.fromARGB(255, 223, 186, 138),
+    Color.fromARGB(255, 226, 138, 253)
+  ];
+
+  List trackers = [
+    {
+      'title': 'Sleep',
+      'rating': 0.0,
+      'rangeMax': 10,
+      'color': Color.fromARGB(255, 241, 175, 171)
+    },
+    {
+      'title': 'Workouts',
+      'rating': 0.0,
+      'rangeMax': 100,
+      'color': Color.fromARGB(255, 169, 216, 171)
+    },
+    {
+      'title': 'Productivity',
+      'rating': 0.0,
+      'rangeMax': 30,
+      'color': Color.fromARGB(255, 177, 202, 223)
+    }
+  ];
+
+  void addTracker(String title, double rating, int rangeMax) {
+    Map tracker = {'title': title, 'rating': rating, 'rangeMax': rangeMax};
+    trackers.add(tracker);
+
+    notifyListeners();
+  }
 
   // CREATING NEW TO-DO LIST ELEMENTS
   void addTodo(var title) {
@@ -91,7 +154,7 @@ class _MyHomePageState extends State<MyHomePage> {
         },
         destinations: const <Widget>[
           NavigationDestination(
-            icon: Icon(Icons.check_box_outlined),
+            icon: Icon(Icons.checklist),
             label: 'To do',
           ),
           NavigationDestination(

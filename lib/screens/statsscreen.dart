@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
 import '../main.dart';
 
-// ------ TO-DO LIST SCREEN DISPLAYING THE LIST ------
+// ------ STATISTICS LIST SCREEN DISPLAYING THE LIST ------
 
 class StatisticsScreen extends StatefulWidget {
   const StatisticsScreen({
