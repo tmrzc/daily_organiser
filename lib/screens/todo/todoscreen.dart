@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
-import '../main.dart';
+import '../../main.dart';
+import 'todopopup.dart';
 
 // ------ TO-DO LIST SCREEN DISPLAYING THE LIST ------
 
@@ -43,7 +44,19 @@ class _TodoListScreenState extends State<TodoListScreen> {
         SliverAppBar.medium(
           pinned: true,
           actions: [
-            NewTodoPopup(),
+            IconButton(
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TodoPopup(),
+                    ));
+              },
+              icon: Icon(
+                Icons.add,
+                size: 40,
+              ),
+            )
           ],
           flexibleSpace: FlexibleSpaceBar(
             centerTitle: false,
@@ -199,101 +212,6 @@ class _TodoListScreenState extends State<TodoListScreen> {
           ),
         ),
       ]),
-    );
-  }
-}
-
-// ------ DIALOG DISPLAYED FOR ADDING NEW TO-DO'S ------
-
-class NewTodoPopup extends StatefulWidget {
-  const NewTodoPopup({
-    super.key,
-  });
-
-  @override
-  State<NewTodoPopup> createState() => _NewTodoPopupState();
-}
-
-class _NewTodoPopupState extends State<NewTodoPopup> {
-  final _titlecontroller = TextEditingController();
-
-  // KEY FOR VALIDATION OF THE FORM
-  final formKey = GlobalKey<FormState>();
-
-  @override
-  Widget build(BuildContext context) {
-    var appState = context.watch<MyAppState>();
-
-    return IconButton(
-      icon: const Icon(
-        Icons.add,
-        size: 40,
-      ),
-      onPressed: () => showDialog<String>(
-        context: context,
-        builder: (BuildContext context) => Dialog.fullscreen(
-          child: Scaffold(
-            appBar: AppBar(
-              title: Text(
-                'Create a new to do',
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-              centerTitle: true,
-            ),
-
-            // FORM FOR ENTERING NEW TO DO DATA
-            body: Form(
-              autovalidateMode: AutovalidateMode.onUserInteraction,
-              key: formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  const SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-                    child: TextFormField(
-                      textCapitalization: TextCapitalization.sentences,
-                      controller: _titlecontroller,
-                      validator: (String? value) {
-                        return (value != null && value.length < 1)
-                            ? 'Title cannot be empty.'
-                            : null;
-                      },
-                      decoration: InputDecoration(
-                          border: const OutlineInputBorder(),
-                          labelText: 'Title of a new to do',
-                          suffixIcon: IconButton(
-                            onPressed: () => _titlecontroller.clear(),
-                            icon: const Icon(Icons.clear),
-                          )),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // SUBMIT BUTTON FOR SUBMITING NEW TO DO
-                  ElevatedButton(
-                    onPressed: () {
-                      final isValidForm = formKey.currentState!.validate();
-
-                      if (isValidForm) {
-                        appState.addTodo(_titlecontroller.text);
-                        _titlecontroller.clear();
-                        Navigator.of(context).pop();
-                        //print(appState.TodoList);
-                        //print(appState.DoneList);
-                      }
-                    },
-                    child: const Text('Submit'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

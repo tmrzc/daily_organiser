@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
-import 'screens/todoscreen.dart';
-import 'screens/trackerscreen.dart';
+import 'screens/todo/todoscreen.dart';
+import 'screens/tracker/trackerscreen.dart';
 
 void main() {
   runApp(const MyApp());

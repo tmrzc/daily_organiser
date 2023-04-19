@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
-import '../main.dart';
+import '../../main.dart';
+import 'trackerpopup.dart';
 
 // ------ TRACKER LIST SCREEN DISPLAYING THE LIST ------
 
@@ -37,96 +38,17 @@ class _TrackerScreenState extends State<TrackerScreen> {
         pinned: true,
         actions: [
           IconButton(
-            icon: Icon(Icons.add, size: 40),
-            onPressed: () => showDialog<String>(
-                context: context,
-                builder: (BuildContext context) => Dialog.fullscreen(
-                      child: Scaffold(
-                        appBar: AppBar(
-                          title: Text(
-                            'Create a new tracker',
-                            style: GoogleFonts.poppins(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                          centerTitle: true,
-                        ),
-                        body: Form(
-                          autovalidateMode: AutovalidateMode.onUserInteraction,
-                          key: formKey,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              const SizedBox(height: 20),
-                              Padding(
-                                padding:
-                                    const EdgeInsets.fromLTRB(20, 10, 20, 0),
-                                child: TextFormField(
-                                  textCapitalization:
-                                      TextCapitalization.sentences,
-                                  controller: _titlecontroller,
-                                  validator: (String? value) {
-                                    return (value != null && value.length < 1)
-                                        ? 'Title cannot be empty.'
-                                        : null;
-                                  },
-                                  decoration: InputDecoration(
-                                      border: const OutlineInputBorder(),
-                                      labelText: 'Title of a new tracker',
-                                      suffixIcon: IconButton(
-                                        onPressed: () =>
-                                            _titlecontroller.clear(),
-                                        icon: const Icon(Icons.clear),
-                                      )),
-                                ),
-                              ),
-                              Padding(
-                                padding:
-                                    const EdgeInsets.fromLTRB(20, 10, 20, 0),
-                                child: TextFormField(
-                                  textCapitalization:
-                                      TextCapitalization.sentences,
-                                  controller: _titlecontroller,
-                                  validator: (String? value) {
-                                    return (value != null && value.length < 1)
-                                        ? 'Tracker will have max. rating of 10 by default'
-                                        : null;
-                                  },
-                                  decoration: InputDecoration(
-                                      border: const OutlineInputBorder(),
-                                      labelText:
-                                          'Maximum score for a rating in this tracker',
-                                      suffixIcon: IconButton(
-                                        onPressed: () =>
-                                            _titlecontroller.clear(),
-                                        icon: const Icon(Icons.clear),
-                                      )),
-                                ),
-                              ),
-                              const SizedBox(height: 20),
-
-                              // SUBMIT BUTTON FOR SUBMITING NEW TO DO
-                              ElevatedButton(
-                                onPressed: () {
-                                  final isValidForm =
-                                      formKey.currentState!.validate();
-
-                                  if (isValidForm) {
-                                    appState.addTodo(_titlecontroller.text);
-                                    _titlecontroller.clear();
-                                    Navigator.of(context).pop();
-                                    //print(appState.TodoList);
-                                    //print(appState.DoneList);
-                                  }
-                                },
-                                child: const Text('Submit'),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    )),
+            onPressed: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => TrackerPopup(theme: theme),
+                  ));
+            },
+            icon: Icon(
+              Icons.add,
+              size: 40,
+            ),
           )
         ],
         flexibleSpace: FlexibleSpaceBar(
@@ -162,7 +84,7 @@ class _TrackerScreenState extends State<TrackerScreen> {
                 ),
               ),
             ),
-            Divider(
+            const Divider(
               indent: 20,
               endIndent: 20,
               height: 40,
