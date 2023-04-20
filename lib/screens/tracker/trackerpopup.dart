@@ -5,10 +5,12 @@ import 'dart:async';
 import '../../main.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
-// ------ DIALOG DISPLAYED FOR ADDING NEW TRACKERSS ------
+// ------ SCREEN DISPLAYED FOR CRATING NEW TRACKERS ------
 
+// ENUM FOR SELECTING TYPE OF TRACKER TO ADD
 enum TrackerType { score, stars, counter, hours }
 
+// ------ CLASS FOR THE NEW TRACKER SCREEN ------
 class TrackerPopup extends StatefulWidget {
   const TrackerPopup({
     super.key,
@@ -22,20 +24,21 @@ class TrackerPopup extends StatefulWidget {
 }
 
 class _TrackerPopup extends State<TrackerPopup> {
+  // TEXTEDITINGCONTROLLERS FOR TRACKER CREATOR INPUT FIELDS
   final _titlecontroller = TextEditingController();
+  final counterController = TextEditingController();
 
   // KEY FOR VALIDATION OF THE FORM
   final formKey = GlobalKey<FormState>();
 
+  // TEMPORARY VALUE FOR LABEL FOR SLIDER TRACKER
   var cos = 0.0;
 
+  // VARIABLE FOR SWITCHING BETWEEN TYPES
   TrackerType trackerView = TrackerType.score;
-
-  final counterController = TextEditingController();
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
 
     counterController.text = '0';
@@ -43,18 +46,21 @@ class _TrackerPopup extends State<TrackerPopup> {
     counterController.addListener(counterChanger);
   }
 
+  // AUTO UPDATING TEXT FOR THE PREVIEW
   void textChanger() {
     setState(() {
       var temp = _titlecontroller.text;
     });
   }
 
+  // AUTO CHECKING IF COUNTER IS NULL FOR THE PREVIEW
   void counterChanger() {
     setState(() {
       var temp = counterController.text;
     });
   }
 
+  // PANEL FOR CHOOSING TYPE OF CREATED TRACKER
   Column choosingType() {
     return Column(
       children: [
@@ -91,6 +97,35 @@ class _TrackerPopup extends State<TrackerPopup> {
     );
   }
 
+  // ------ FUNCTIONS FOR MANAGING COUNTER TYPE TRACKER ------
+  String addToController(
+      TextEditingController controllerExample, int amountToAdd) {
+    int value = int.parse(controllerExample.text);
+    value = value + amountToAdd;
+    return value.toString();
+  }
+
+  String subtractFromController(
+      TextEditingController controllerExample, int amountToSubtract) {
+    int value = int.parse(controllerExample.text);
+    if (amountToSubtract > value) {
+      value = 0;
+    } else {
+      value = value - amountToSubtract;
+    }
+
+    return value.toString();
+  }
+
+  String emptyToZero(TextEditingController controllerExample) {
+    if (controllerExample.text == '') return '0';
+    int value = int.parse(controllerExample.text);
+    if (value < 0) return '0';
+
+    return controllerExample.text;
+  }
+
+  // ------ MENU SWITCHER FOR DIFFERENT TYPES OF TRACEKRS ------
   Widget typeDependantOptions() {
     if (trackerView == TrackerType.score) {
       return Column(
@@ -119,12 +154,13 @@ class _TrackerPopup extends State<TrackerPopup> {
     } else {
       return Column(
         children: [
-          Text('Nothing'),
+          Text('ERROR: trackerpopup.dart typeDependantOptions()'),
         ],
       );
     }
   }
 
+  // ------ TYPES OF TRACKERS ------
   Center starsOption() {
     return Center(
       child: RatingBar(
@@ -144,33 +180,6 @@ class _TrackerPopup extends State<TrackerPopup> {
         onRatingUpdate: (value) {},
       ),
     );
-  }
-
-  String addToController(
-      TextEditingController controllerExample, int amountToAdd) {
-    int value = int.parse(controllerExample.text);
-    value = value + amountToAdd;
-    return value.toString();
-  }
-
-  String subtractFromController(
-      TextEditingController controllerExample, int amountToSubtract) {
-    int value = int.parse(controllerExample.text);
-    if (amountToSubtract > value) {
-      value = 0;
-    } else {
-      value = value - amountToSubtract;
-    }
-
-    return value.toString();
-  }
-
-  String emptyToZero(TextEditingController controllerExample) {
-    if (controllerExample.text == '') return '0';
-    int value = int.parse(controllerExample.text);
-    if (value < 0) return '0';
-
-    return controllerExample.text;
   }
 
   Center counterOption() {
@@ -243,6 +252,7 @@ class _TrackerPopup extends State<TrackerPopup> {
     );
   }
 
+  // ------ MAIN WIDGET TREE FOR THE CREATE NEW TRACKER SCREEN ------
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
@@ -355,6 +365,7 @@ class _TrackerPopup extends State<TrackerPopup> {
   }
 }
 
+// ------ DIVIDER WITH TEXT CLASS ------
 class HeaderText extends StatelessWidget {
   const HeaderText({
     super.key,

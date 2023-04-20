@@ -22,6 +22,7 @@ class TodoListScreen extends StatefulWidget {
 class _TodoListScreenState extends State<TodoListScreen> {
   @override
   Widget build(BuildContext context) {
+    // FUNCTION FOR CHANGING COLOR OF CHECKED CHECKBOXES
     Color getColor(Set<MaterialState> states) {
       const Set<MaterialState> interactiveStates = <MaterialState>{
         MaterialState.pressed,
@@ -94,7 +95,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
                     onChanged: (bool? value) {
                       setState(() {
                         _TodoList[index][0] = value!;
-                        Timer(Duration(milliseconds: 250), () {
+                        Timer(const Duration(milliseconds: 250), () {
                           appState.switchListsTodo(
                             _TodoList,
                             _doneList,
@@ -117,7 +118,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
           ),
         ),
 
-        DividerWithButton(appState, _doneList),
+        dividerWithButton(appState, _doneList),
 
         // DONE TASKS PART OF THE LIST
         SliverList(
@@ -148,7 +149,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
                     onChanged: (bool? value) {
                       setState(() {
                         _doneList[index][0] = value!;
-                        Timer(Duration(milliseconds: 250), () {
+                        Timer(const Duration(milliseconds: 250), () {
                           appState.switchListsTodo(
                             _doneList,
                             _TodoList,
@@ -174,7 +175,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
     );
   }
 
-  SliverList DividerWithButton(MyAppState appState, List<dynamic> _doneList) {
+  // ------ DIVIDER WITH BUTTON FOR DELETING DONE TASKS ------
+  SliverList dividerWithButton(MyAppState appState, List<dynamic> _doneList) {
     return SliverList(
       delegate: SliverChildListDelegate([
         Padding(

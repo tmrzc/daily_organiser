@@ -20,7 +20,6 @@ class TrackerScreen extends StatefulWidget {
 }
 
 class _TrackerScreenState extends State<TrackerScreen> {
-  final _titlecontroller = TextEditingController();
   final formKey = GlobalKey<FormState>();
 
   @override
@@ -28,6 +27,7 @@ class _TrackerScreenState extends State<TrackerScreen> {
     var theme = Theme.of(context);
     var appState = context.watch<MyAppState>();
 
+    // FUNCTION FOR SETTING DIVIDERS FROM MAXVALUE FOR SLIDERS
     double intToDouble(int nr) {
       return nr * 1.0;
     }
@@ -65,6 +65,7 @@ class _TrackerScreenState extends State<TrackerScreen> {
         ),
       ),
 
+      // BUTTON FOR ADDING JOURNAL ENTRY
       SliverList(
         delegate: SliverChildListDelegate(
           [
