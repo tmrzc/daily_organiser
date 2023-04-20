@@ -3,8 +3,11 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
 import '../../main.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 // ------ DIALOG DISPLAYED FOR ADDING NEW TRACKERSS ------
+
+enum TrackerType { score, stars, counter, hours }
 
 class TrackerPopup extends StatefulWidget {
   const TrackerPopup({
@@ -24,12 +27,20 @@ class _TrackerPopup extends State<TrackerPopup> {
   // KEY FOR VALIDATION OF THE FORM
   final formKey = GlobalKey<FormState>();
 
+  var cos = 0.0;
+
+  TrackerType trackerView = TrackerType.score;
+
+  final counterController = TextEditingController();
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
 
+    counterController.text = '0';
     _titlecontroller.addListener(textChanger);
+    counterController.addListener(counterChanger);
   }
 
   void textChanger() {
@@ -38,10 +49,203 @@ class _TrackerPopup extends State<TrackerPopup> {
     });
   }
 
+  void counterChanger() {
+    setState(() {
+      var temp = counterController.text;
+    });
+  }
+
+  Column choosingType() {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+          child: SegmentedButton<TrackerType>(
+            segments: const <ButtonSegment<TrackerType>>[
+              ButtonSegment<TrackerType>(
+                  value: TrackerType.score,
+                  label: Text('Score'),
+                  icon: Icon(Icons.score)),
+              ButtonSegment<TrackerType>(
+                  value: TrackerType.stars,
+                  label: Text('Stars'),
+                  icon: Icon(Icons.stars)),
+              ButtonSegment<TrackerType>(
+                  value: TrackerType.counter,
+                  label: Text('Count'),
+                  icon: Icon(Icons.plus_one_outlined)),
+              ButtonSegment<TrackerType>(
+                  value: TrackerType.hours,
+                  label: Text('Time'),
+                  icon: Icon(Icons.timer)),
+            ],
+            selected: <TrackerType>{trackerView},
+            onSelectionChanged: (Set<TrackerType> newSelection) {
+              setState(() {
+                trackerView = newSelection.first;
+              });
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget typeDependantOptions() {
+    if (trackerView == TrackerType.score) {
+      return Column(
+        children: [
+          sliderOption(),
+        ],
+      );
+    } else if (trackerView == TrackerType.stars) {
+      return Column(
+        children: [
+          starsOption(),
+        ],
+      );
+    } else if (trackerView == TrackerType.counter) {
+      return Column(
+        children: [
+          counterOption(),
+        ],
+      );
+    } else if (trackerView == TrackerType.hours) {
+      return Column(
+        children: [
+          Text('Time'),
+        ],
+      );
+    } else {
+      return Column(
+        children: [
+          Text('Nothing'),
+        ],
+      );
+    }
+  }
+
+  Center starsOption() {
+    return Center(
+      child: RatingBar(
+        glow: false,
+        initialRating: 5,
+        itemCount: 5,
+        ratingWidget: RatingWidget(
+            full: Icon(
+              Icons.star,
+              color: Colors.amber,
+            ),
+            empty: Icon(
+              Icons.star,
+              color: Colors.grey,
+            ),
+            half: Icon(Icons.star_half)),
+        onRatingUpdate: (value) {},
+      ),
+    );
+  }
+
+  String addToController(
+      TextEditingController controllerExample, int amountToAdd) {
+    int value = int.parse(controllerExample.text);
+    value = value + amountToAdd;
+    return value.toString();
+  }
+
+  String subtractFromController(
+      TextEditingController controllerExample, int amountToSubtract) {
+    int value = int.parse(controllerExample.text);
+    if (amountToSubtract > value) {
+      value = 0;
+    } else {
+      value = value - amountToSubtract;
+    }
+
+    return value.toString();
+  }
+
+  String emptyToZero(TextEditingController controllerExample) {
+    if (controllerExample.text == '') return '0';
+    int value = int.parse(controllerExample.text);
+    if (value < 0) return '0';
+
+    return controllerExample.text;
+  }
+
+  Center counterOption() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+        child: Card(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(4, 0, 4, 0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      counterController.text =
+                          subtractFromController(counterController, 1);
+                    });
+                  },
+                  child: Icon(Icons.remove),
+                ),
+                Expanded(
+                  child: Center(
+                    child: TextField(
+                      textAlign: TextAlign.center,
+                      onSubmitted: (value) {
+                        setState(() {
+                          counterController.text =
+                              emptyToZero(counterController);
+                        });
+                      },
+                      keyboardType: TextInputType.number,
+                      controller: counterController,
+                      style: GoogleFonts.poppins(
+                          fontSize: 20, fontWeight: FontWeight.w400),
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      counterController.text =
+                          addToController(counterController, 1);
+                    });
+                  },
+                  child: Icon(Icons.add),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Slider sliderOption() {
+    return Slider(
+      value: cos,
+      divisions: 10,
+      min: 0,
+      max: 10,
+      label: '$cos',
+      onChanged: (newRating) {
+        setState(() {
+          cos = newRating;
+        });
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
-    var cos = 0.0;
 
     return Scaffold(
       appBar: AppBar(
@@ -63,7 +267,7 @@ class _TrackerPopup extends State<TrackerPopup> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              headerText(widget: widget, header: 'Tracker preview'),
+              HeaderText(widget: widget, header: 'Tracker preview'),
 
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
@@ -93,18 +297,7 @@ class _TrackerPopup extends State<TrackerPopup> {
                         child: Row(
                           children: [
                             Expanded(
-                              child: Slider(
-                                value: cos,
-                                divisions: 10,
-                                min: 0,
-                                max: 10,
-                                //label: ,
-                                onChanged: (newRating) {
-                                  setState(() {
-                                    cos = newRating;
-                                  });
-                                },
-                              ),
+                              child: typeDependantOptions(),
                             ),
                             Icon(Icons.check),
                           ],
@@ -115,7 +308,7 @@ class _TrackerPopup extends State<TrackerPopup> {
                 ),
               ),
 
-              headerText(widget: widget, header: 'Title'),
+              HeaderText(widget: widget, header: 'Title'),
 
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
@@ -137,9 +330,9 @@ class _TrackerPopup extends State<TrackerPopup> {
                 ),
               ),
 
-              headerText(widget: widget, header: 'Type'),
+              HeaderText(widget: widget, header: 'Type'),
 
-              SingleChoice(),
+              choosingType(),
 
               // SUBMIT BUTTON FOR SUBMITING NEW TO DO
               ElevatedButton(
@@ -162,15 +355,15 @@ class _TrackerPopup extends State<TrackerPopup> {
   }
 }
 
-class headerText extends StatelessWidget {
-  headerText({
+class HeaderText extends StatelessWidget {
+  const HeaderText({
     super.key,
     required this.widget,
     required this.header,
   });
 
   final TrackerPopup widget;
-  String header;
+  final String header;
 
   @override
   Widget build(BuildContext context) {
@@ -195,48 +388,6 @@ class headerText extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-enum trackerType { score, counter, hours }
-
-class SingleChoice extends StatefulWidget {
-  const SingleChoice({super.key});
-
-  @override
-  State<SingleChoice> createState() => _SingleChoiceState();
-}
-
-class _SingleChoiceState extends State<SingleChoice> {
-  trackerType calendarView = trackerType.score;
-
-  @override
-  Widget build(BuildContext context) {
-    return SegmentedButton<trackerType>(
-      segments: const <ButtonSegment<trackerType>>[
-        ButtonSegment<trackerType>(
-            value: trackerType.score,
-            label: Text('Score'),
-            icon: Icon(Icons.stars)),
-        ButtonSegment<trackerType>(
-            value: trackerType.counter,
-            label: Text('Counter'),
-            icon: Icon(Icons.plus_one_outlined)),
-        ButtonSegment<trackerType>(
-            value: trackerType.hours,
-            label: Text('Hours'),
-            icon: Icon(Icons.timer)),
-      ],
-      selected: <trackerType>{calendarView},
-      onSelectionChanged: (Set<trackerType> newSelection) {
-        setState(() {
-          // By default there is only a single segment that can be
-          // selected at one time, so its value is always the first
-          // item in the selected set.
-          calendarView = newSelection.first;
-        });
-      },
     );
   }
 }
