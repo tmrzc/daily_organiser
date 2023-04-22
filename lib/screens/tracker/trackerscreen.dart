@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:async';
 import '../../main.dart';
 import 'trackerpopup.dart';
+import 'trackercard.dart';
 
 // ------ TRACKER LIST SCREEN DISPLAYING THE LIST ------
 
@@ -73,7 +73,7 @@ class _TrackerScreenState extends State<TrackerScreen> {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(15, 10, 15, 10),
                 child: ElevatedButton(
-                  onPressed: () => appState.addTracker('Test 1', 5.0, 10),
+                  onPressed: () => appState.addTodo('title'),
                   child: Text(
                     "Add today's journal entry...",
                     style: GoogleFonts.poppins(
@@ -98,59 +98,9 @@ class _TrackerScreenState extends State<TrackerScreen> {
       SliverList(
         delegate: SliverChildBuilderDelegate(
           (BuildContext context, int index) {
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-              child: Card(
-                color: appState.trackers[index]['color'],
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              '${appState.trackers[index]['title']}',
-                              style: GoogleFonts.poppins(
-                                fontSize: 30,
-                                fontWeight: FontWeight.w400,
-                                color: widget.theme.colorScheme.onBackground,
-                              ),
-                            ),
-                          ),
-                          Icon(Icons.settings),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 20, 20, 10),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Slider(
-                              value: appState.trackers[index]['rating'],
-                              divisions: appState.trackers[index]['rangeMax'],
-                              min: 0,
-                              max: intToDouble(
-                                  appState.trackers[index]['rangeMax']),
-                              label: appState.trackers[index]['rating']
-                                  .round()
-                                  .toString(),
-                              onChanged: (newRating) {
-                                setState(() {
-                                  appState.trackers[index]['rating'] =
-                                      newRating;
-                                });
-                              },
-                            ),
-                          ),
-                          Icon(Icons.check),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            return trackerCardListItem(
+              theme: theme,
+              trackerInfo: appState.trackers[index],
             );
           },
           childCount: appState.trackers.length,

@@ -1,4 +1,5 @@
 import 'package:daily_organiser/screens/statsscreen.dart';
+import 'package:daily_organiser/screens/tracker/trackerpopup.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -62,39 +63,12 @@ class MyAppState extends ChangeNotifier {
   ];
   late List DoneList = [];
 
-  List trackerColors = [
-    Color.fromARGB(255, 147, 166, 144),
-    Color.fromARGB(255, 179, 203, 255),
-    Color.fromARGB(255, 221, 231, 166),
-    Color.fromARGB(255, 233, 178, 175),
-    Color.fromARGB(255, 213, 181, 223),
-    Color.fromARGB(255, 223, 186, 138),
-    Color.fromARGB(255, 226, 138, 253)
-  ];
+  List trackers = [];
 
-  List trackers = [
-    {
-      'title': 'Sleep',
-      'rating': 0.0,
-      'rangeMax': 10,
-      'color': Color.fromARGB(255, 241, 175, 171)
-    },
-    {
-      'title': 'Workouts',
-      'rating': 0.0,
-      'rangeMax': 100,
-      'color': Color.fromARGB(255, 169, 216, 171)
-    },
-    {
-      'title': 'Productivity',
-      'rating': 0.0,
-      'rangeMax': 30,
-      'color': Color.fromARGB(255, 177, 202, 223)
-    }
-  ];
+  void addTracker(String title, TrackerType type, int rangeMax) {
+    Map info = {'title': title, 'rangeMax': rangeMax};
+    Map tracker = {'type': type, 'info': info};
 
-  void addTracker(String title, double rating, int rangeMax) {
-    Map tracker = {'title': title, 'rating': rating, 'rangeMax': rangeMax};
     trackers.add(tracker);
 
     notifyListeners();

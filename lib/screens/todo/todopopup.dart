@@ -44,6 +44,7 @@ class _TodoPopup extends State<TodoPopup> {
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
               child: TextFormField(
+                autofocus: true,
                 textCapitalization: TextCapitalization.sentences,
                 controller: _titlecontroller,
                 validator: (String? value) {
