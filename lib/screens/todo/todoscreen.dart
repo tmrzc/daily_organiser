@@ -1,3 +1,4 @@
+import 'package:daily_organiser/database/datamodels.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -20,6 +21,9 @@ class TodoListScreen extends StatefulWidget {
 }
 
 class _TodoListScreenState extends State<TodoListScreen> {
+  late List<Todo> todos;
+  bool isLoading = false;
+
   @override
   Widget build(BuildContext context) {
     // FUNCTION FOR CHANGING COLOR OF CHECKED CHECKBOXES
