@@ -6,10 +6,31 @@ import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
 import 'screens/todo/todoscreen.dart';
 import 'screens/tracker/trackerscreen.dart';
+import 'database/databaseusage.dart';
 
 void main() {
   runApp(const MyApp());
 }
+
+final appTheme = ThemeData(
+  useMaterial3: true,
+  colorScheme:
+      ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 147, 166, 144)),
+);
+
+List trackerColors = [
+  {'name': 'DEFAULT', 'theme': appTheme.colorScheme.background},
+  {'name': 'RED', 'theme': Color.fromARGB(255, 252, 191, 219)},
+  {'name': 'BLUE', 'theme': Color.fromARGB(255, 196, 231, 248)},
+  {'name': 'MINT', 'theme': const Color.fromARGB(255, 211, 248, 226)},
+  {'name': 'VIOLET', 'theme': const Color.fromARGB(255, 228, 193, 249)},
+  {'name': 'YELLOW', 'theme': const Color.fromARGB(255, 237, 231, 177)},
+];
+
+enum TrackerState { enabled, disabled }
+
+// ENUM FOR SELECTING TYPE OF TRACKER TO ADD
+enum TrackerType { score, stars, counter, hours }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -21,11 +42,7 @@ class MyApp extends StatelessWidget {
       create: (context) => MyAppState(),
       child: MaterialApp(
         title: 'Organise',
-        theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(
-              seedColor: Color.fromARGB(255, 147, 166, 144)),
-        ),
+        theme: appTheme,
         home: MyHomePage(),
       ),
     );
@@ -35,41 +52,41 @@ class MyApp extends StatelessWidget {
 // ------ CHANGE NOTIFIER ------
 
 class MyAppState extends ChangeNotifier {
-  late List TodoList = [
-    [
-      false,
-      {'title': 'Wyprowadzić psa'}
-    ],
-    [
-      false,
-      {'title': 'Rozładować zmywarkę'}
-    ],
-    [
-      false,
-      {'title': 'Wynieść śmieci'}
-    ],
-    [
-      false,
-      {'title': 'Posprzątać pokój'}
-    ],
-    [
-      false,
-      {'title': 'Zrobić obiad'}
-    ],
-    [
-      false,
-      {'title': 'Pójść na siłownię'}
-    ]
-  ];
+  late List TodoList = [];
   late List DoneList = [];
+  var db = OrganiserDatabase.instance;
 
   List trackers = [];
 
-  void addTracker(String title, TrackerType type, int rangeMax) {
-    Map info = {'title': title, 'rangeMax': rangeMax};
-    Map tracker = {'type': type, 'info': info};
-
+  void addTracker(String title, TrackerType type, int colorId,
+      [int rangeMax = 10]) {
+    Map tracker = {
+      'type': type,
+      'title': title,
+      'rangeMax': rangeMax,
+      'state': TrackerState.enabled,
+      'color_id': colorId,
+    };
     trackers.add(tracker);
+
+    notifyListeners();
+  }
+
+  void saveValueToTracker(Map tracker, double value) {
+    tracker['value'] = value;
+    tracker['state'] = TrackerState.disabled;
+
+    notifyListeners();
+  }
+
+  void enableTracker(Map tracker) {
+    tracker['state'] = TrackerState.enabled;
+
+    notifyListeners();
+  }
+
+  void removeTracker(int index) {
+    trackers.removeAt(index);
 
     notifyListeners();
   }

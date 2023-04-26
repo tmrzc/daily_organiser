@@ -98,9 +98,13 @@ class _TrackerScreenState extends State<TrackerScreen> {
       SliverList(
         delegate: SliverChildBuilderDelegate(
           (BuildContext context, int index) {
-            return trackerCardListItem(
-              theme: theme,
-              trackerInfo: appState.trackers[index],
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+              child: trackerCardListItem(
+                theme: theme,
+                trackerInfo: appState.trackers[index],
+                index: index,
+              ),
             );
           },
           childCount: appState.trackers.length,

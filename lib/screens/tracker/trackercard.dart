@@ -11,10 +11,12 @@ class trackerCardListItem extends StatefulWidget {
     super.key,
     required this.theme,
     required this.trackerInfo,
+    this.index = 0,
   });
 
   final ThemeData theme;
   var trackerInfo;
+  int index;
 
   @override
   State<trackerCardListItem> createState() => _trackerCardListItem();
@@ -40,12 +42,13 @@ class _trackerCardListItem extends State<trackerCardListItem> {
 
   @override
   Widget build(BuildContext context) {
-    //var appState = context.watch<MyAppState>();
+    var appState = context.watch<MyAppState>();
     var trackerInfo = widget.trackerInfo;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+      padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
       child: Card(
+        color: trackerColors[trackerInfo['color_id']]['theme'],
         child: Column(
           children: [
             Padding(
@@ -54,27 +57,82 @@ class _trackerCardListItem extends State<trackerCardListItem> {
                 children: [
                   Expanded(
                     child: Text(
-                      trackerInfo['info']['title'],
+                      trackerInfo['title'],
                       style: GoogleFonts.poppins(
-                        fontSize: 20,
+                        fontSize: 30,
                         fontWeight: FontWeight.w400,
                       ),
                     ),
                   ),
-                  Icon(Icons.settings),
+                  IconButton(
+                    onPressed: () {
+                      showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return SimpleDialog(
+                              title: const Text(
+                                  "Delete this tracker and it's history?"),
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  children: [
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          appState.removeTracker(widget.index);
+                                        });
+                                        Navigator.pop(context);
+                                      },
+                                      child: const Padding(
+                                        padding:
+                                            EdgeInsets.fromLTRB(20, 0, 20, 0),
+                                        child: Text('Yes'),
+                                      ),
+                                    ),
+                                    ElevatedButton(
+                                      style: ButtonStyle(
+                                        backgroundColor:
+                                            MaterialStateColor.resolveWith(
+                                                (states) =>
+                                                    widget.theme.shadowColor),
+                                      ),
+                                      onPressed: () => Navigator.pop(context),
+                                      child: Padding(
+                                        padding: const EdgeInsets.fromLTRB(
+                                            20, 0, 20, 0),
+                                        child: Text(
+                                          'No',
+                                          style: TextStyle(
+                                            color:
+                                                MaterialStateColor.resolveWith(
+                                                    (states) => widget
+                                                        .theme.backgroundColor),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              ],
+                            );
+                          });
+                    },
+                    icon: const Padding(
+                      padding: EdgeInsets.fromLTRB(20, 0, 0, 0),
+                      child: Icon(
+                        Icons.delete,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(0, 20, 20, 10),
-              child: Row(
-                children: [
-                  Expanded(child: typeDependantOptions(trackerInfo['type'])),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
-                    child: Icon(Icons.check),
-                  ),
-                ],
+              child: typeDependantOptions(
+                trackerInfo['type'],
+                trackerInfo['state'],
               ),
             ),
           ],
@@ -84,20 +142,70 @@ class _trackerCardListItem extends State<trackerCardListItem> {
   }
 
   // ------ MENU SWITCHER FOR DIFFERENT TYPES OF TRACEKRS ------
-  Widget typeDependantOptions(TrackerType type) {
-    if (type == TrackerType.score) {
-      return sliderOption();
-    } else if (type == TrackerType.stars) {
-      return starsOption();
-    } else if (type == TrackerType.counter) {
-      return counterOption();
-    } else if (type == TrackerType.hours) {
-      return timeOption();
-    } else {
-      return Text('ERROR: trackerpopup.dart typeDependantOptions()');
+  Widget typeDependantOptions(TrackerType type, var state) {
+    var appState = context.watch<MyAppState>();
+
+    Row selectorRowTracker(Widget option) {
+      return Row(
+        children: [
+          Expanded(child: option),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
+            child: IconButton(
+              icon: const Icon(Icons.check),
+              onPressed: () {
+                setState(() {
+                  appState.saveValueToTracker(widget.trackerInfo, rating);
+                });
+              },
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (state == TrackerState.disabled) {
+      return Row(
+        children: [
+          Expanded(child: disabledTracker()),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
+            child: IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () {
+                setState(() {
+                  appState.enableTracker(widget.trackerInfo);
+                });
+                print(appState.trackers);
+              },
+            ),
+          ),
+        ],
+      );
+    }
+
+    switch (type) {
+      case TrackerType.score:
+        return selectorRowTracker(sliderOption());
+      case TrackerType.stars:
+        return selectorRowTracker(starsOption());
+      case TrackerType.counter:
+        return selectorRowTracker(counterOption());
+      case TrackerType.hours:
+        return selectorRowTracker(timeOption());
+      default:
+        return const Text('ERROR: trackerpopup.dart typeDependantOptions()');
     }
   }
 
+  Padding disabledTracker() {
+    return const Padding(
+      padding: EdgeInsets.fromLTRB(10, 7, 0, 7),
+      child: Center(child: Text('S a v e d !')),
+    );
+  }
+
+  // ------ TYPES OF TRACKERS TO SELECT FROM -------
   Padding sliderOption() {
     var appState = context.watch<MyAppState>();
 
@@ -119,8 +227,9 @@ class _trackerCardListItem extends State<trackerCardListItem> {
                 onChanged: (newRating) {
                   setState(() {
                     rating = newRating;
-                    //appState.trackers[widget.index][1]['value'] = rating;
+                    //appState.saveValueToTracker(widget.trackerInfo, rating);
                   });
+                  print(appState.trackers);
                 },
               ),
             ],
@@ -131,8 +240,10 @@ class _trackerCardListItem extends State<trackerCardListItem> {
   }
 
   Padding starsOption() {
+    var appState = context.watch<MyAppState>();
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
+      padding: const EdgeInsets.fromLTRB(10, 4, 0, 0),
       child: Center(
         child: Card(
           elevation: 0,
@@ -142,8 +253,9 @@ class _trackerCardListItem extends State<trackerCardListItem> {
             padding: const EdgeInsets.fromLTRB(11, 11, 11, 11),
             child: RatingBar(
               glow: false,
-              initialRating: 5,
+              initialRating: rating,
               itemCount: 5,
+              itemSize: 36,
               ratingWidget: RatingWidget(
                   full: Icon(
                     Icons.star,
@@ -154,7 +266,10 @@ class _trackerCardListItem extends State<trackerCardListItem> {
                     color: Colors.grey,
                   ),
                   half: Icon(Icons.star_half)),
-              onRatingUpdate: (value) {},
+              onRatingUpdate: (value) {
+                rating = value;
+                print(appState.trackers);
+              },
             ),
           ),
         ),
@@ -180,6 +295,7 @@ class _trackerCardListItem extends State<trackerCardListItem> {
                     setState(() {
                       counterController.text =
                           subtractFromController(counterController, 1);
+                      rating = double.parse(counterController.text);
                     });
                   },
                   child: Icon(Icons.remove),
@@ -192,6 +308,7 @@ class _trackerCardListItem extends State<trackerCardListItem> {
                         setState(() {
                           counterController.text =
                               emptyToZero(counterController);
+                          rating = double.parse(counterController.text);
                         });
                       },
                       keyboardType: TextInputType.number,
@@ -206,6 +323,7 @@ class _trackerCardListItem extends State<trackerCardListItem> {
                     setState(() {
                       counterController.text =
                           addToController(counterController, 1);
+                      rating = double.parse(counterController.text);
                     });
                   },
                   child: Icon(Icons.add),
