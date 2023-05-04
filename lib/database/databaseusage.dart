@@ -1,9 +1,6 @@
 import 'package:sqflite/sqflite.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'todomodel.dart';
 import 'package:path/path.dart';
-import 'package:daily_organiser/main.dart';
-import 'datamodels.dart';
 
 class OrganiserDatabase {
   static final OrganiserDatabase instance = OrganiserDatabase._init();
@@ -35,7 +32,7 @@ class OrganiserDatabase {
     await db.execute('''
     CREATE TABLE $tableTodo (
       ${TodoTable.id} $idType,
-      ${TodoTable.value_todo} $textType,
+      ${TodoTable.value_todo} $textType
       ${TodoTable.isDone} $boolType
     )''');
 
@@ -56,12 +53,6 @@ class OrganiserDatabase {
     )''');*/
   }
 
-  Future close() async {
-    final db = await instance.database;
-
-    db.close();
-  }
-
   Future<Todo> create(Todo todo) async {
     final db = await instance.database;
 
@@ -70,44 +61,41 @@ class OrganiserDatabase {
     return todo.copy(id: id);
   }
 
-  Future<Todo> readTodo(bool isDone) async {
+  Future<List<Todo>> readTodos(bool status) async {
     final db = await instance.database;
 
-    final maps = await db.query(tableTodo,
+    final listOfMaps = await db.query(tableTodo,
         columns: TodoTable.values,
         where: '${TodoTable.isDone} = ?',
-        whereArgs: [isDone ? 1 : 0]);
+        whereArgs: [status ? 1 : 0]);
 
-    if (maps.isNotEmpty) {
-      return Todo.fromJson(maps);
-    }
+    return listOfMaps.map((json) => Todo.fromJson(json)).toList();
   }
-  /*Future addTracker(String name, TrackerType type, int colorId,
-      [int rangeMax = 10]) async {
+
+  Future<int> updateTodo(Todo todo) async {
     final db = await instance.database;
 
-    String typeToString(type) {
-      switch (type) {
-        case TrackerType.score:
-          return 'score';
-        case TrackerType.stars:
-          rangeMax = 5;
-          return 'stars';
-        case TrackerType.counter:
-          rangeMax = 0;
-          return 'counter';
-        default:
-          return 'ERROR';
-      }
-    }
+    return db.update(
+      tableTodo,
+      todo.toJson(),
+      where: '${TodoTable.id} = ?',
+      whereArgs: [todo.id],
+    );
+  }
 
-    final id = await db.rawInsert('''
-      INSERT INTO trackersList (
-        name_tracker,
-        type_tracker,
-        color_id_tracker,
-        range_tracker
-        )
-      VALUES(?, ?, ?, ?)''', [name, typeToString(type), colorId, rangeMax]);
-  }*/
+  Future<int> deleteTodo(Todo todo) async {
+    final db = await instance.database;
+
+    return db.delete(
+      tableTodo,
+      where: '${TodoTable.id} = ?',
+      whereArgs: [todo.id],
+    );
+  }
+
+  Future close() async {
+    final db = await instance.database;
+
+    db.close();
+  }
 }

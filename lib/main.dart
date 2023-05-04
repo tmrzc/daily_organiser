@@ -1,12 +1,11 @@
 import 'package:daily_organiser/screens/statsscreen.dart';
-import 'package:daily_organiser/screens/tracker/trackerpopup.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'dart:async';
 import 'screens/todo/todoscreen.dart';
 import 'screens/tracker/trackerscreen.dart';
 import 'database/databaseusage.dart';
+import 'database/todomodel.dart';
+import 'screens/todo/todoscreen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -32,6 +31,8 @@ enum TrackerState { enabled, disabled }
 // ENUM FOR SELECTING TYPE OF TRACKER TO ADD
 enum TrackerType { score, stars, counter, hours }
 
+// ------- ROOT OF APLICATION ------
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -52,8 +53,8 @@ class MyApp extends StatelessWidget {
 // ------ CHANGE NOTIFIER ------
 
 class MyAppState extends ChangeNotifier {
-  late List TodoList = [];
-  late List DoneList = [];
+  late List<Todo> TodoList = [];
+  late List<Todo> DoneList = [];
   var db = OrganiserDatabase.instance;
 
   List trackers = [];
@@ -93,13 +94,9 @@ class MyAppState extends ChangeNotifier {
 
   // CREATING NEW TO-DO LIST ELEMENTS
   void addTodo(var title) {
-    List TodoCard = [];
-    Map SingleTodo = {};
-
-    SingleTodo['title'] = title;
-    TodoCard.add(false);
-    TodoCard.add(SingleTodo);
-    TodoList.insert(0, TodoCard);
+    var newTodo = Todo(value: title, isDone: false);
+    db.create(newTodo);
+    TodoList.insert(0, newTodo);
 
     notifyListeners();
   }
@@ -107,6 +104,7 @@ class MyAppState extends ChangeNotifier {
   // FINISHING A TASK AND DELETING IT FROM TO DO'S
   void switchListsTodo(List fromList, List toList, var switchingTask, int idx) {
     //toList.insert(0, switchingTask);
+    db.updateTodo(fromList[idx]);
     toList.add(switchingTask);
     fromList.removeAt(idx);
 
@@ -119,12 +117,12 @@ class MyAppState extends ChangeNotifier {
   }
 }
 
+// ------ MAIN SCREEN WITH NAVIGATION BAR ------
+
 class MyHomePage extends StatefulWidget {
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
-
-// ------ MAIN SCREEN WITH NAVIGATION BAR ------
 
 class _MyHomePageState extends State<MyHomePage> {
   var currentPageIndex = 0;

@@ -1,3 +1,5 @@
+import 'package:daily_organiser/database/databaseusage.dart';
+import 'package:daily_organiser/database/todomodel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -71,9 +73,8 @@ class _TodoPopup extends State<TodoPopup> {
                 if (isValidForm) {
                   appState.addTodo(_titlecontroller.text);
                   _titlecontroller.clear();
+
                   Navigator.of(context).pop();
-                  //print(appState.TodoList);
-                  //print(appState.DoneList);
                 }
               },
               child: const Text('Submit'),

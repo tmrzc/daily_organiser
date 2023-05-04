@@ -1,4 +1,5 @@
-import 'package:daily_organiser/database/datamodels.dart';
+import 'package:daily_organiser/database/databaseusage.dart';
+import 'package:daily_organiser/database/todomodel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -21,8 +22,40 @@ class TodoListScreen extends StatefulWidget {
 }
 
 class _TodoListScreenState extends State<TodoListScreen> {
-  late List<Todo> todos;
+  //late List<Todo> todos = [];
+  //late List<Todo> donetodos = [];
   bool isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    refreshTodos();
+  }
+
+  /*@override
+  void dispose() {
+    OrganiserDatabase.instance.close();
+
+    super.dispose();
+  }*/
+
+  void test(int number) {
+    for (int i = 0; i < number; i++) {
+      Todo cos = Todo(value: '$i numer', isDone: false);
+      var add = OrganiserDatabase.instance.create(cos);
+    }
+  }
+
+  Future refreshTodos() async {
+    var appState = context.watch<MyAppState>();
+    setState(() => isLoading = true);
+
+    appState.TodoList = await OrganiserDatabase.instance.readTodos(false);
+    appState.DoneList = await OrganiserDatabase.instance.readTodos(true);
+
+    setState(() => isLoading = false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -93,13 +126,15 @@ class _TodoListScreenState extends State<TodoListScreen> {
                   ),
                 ),
                 child: ListTile(
-                  title: Text('${_TodoList[index][1]['title']}'),
+                  title: Text(_TodoList[index].value),
                   leading: Checkbox(
-                    value: _TodoList[index][0],
+                    value: _TodoList[index].isDone,
                     onChanged: (bool? value) {
                       setState(() {
-                        _TodoList[index][0] = value!;
+                        _TodoList[index].isDone = value!;
                         Timer(const Duration(milliseconds: 250), () {
+                          OrganiserDatabase.instance
+                              .updateTodo(_TodoList[index]);
                           appState.switchListsTodo(
                             _TodoList,
                             _doneList,
@@ -113,6 +148,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
                 ),
                 onDismissed: (DismissDirection direction) {
                   setState(() {
+                    OrganiserDatabase.instance.deleteTodo(_TodoList[index]);
                     _TodoList.removeAt(index);
                   });
                 },
@@ -141,7 +177,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
                 ),
                 child: ListTile(
                   title: Text(
-                    '${_doneList[index][1]['title']}',
+                    _doneList[index].value,
                     style: TextStyle(
                       decoration: TextDecoration.lineThrough,
                       color: widget.theme.disabledColor,
@@ -149,11 +185,13 @@ class _TodoListScreenState extends State<TodoListScreen> {
                   ),
                   leading: Checkbox(
                     fillColor: MaterialStateProperty.resolveWith(getColor),
-                    value: _doneList[index][0],
+                    value: _doneList[index].isDone,
                     onChanged: (bool? value) {
                       setState(() {
-                        _doneList[index][0] = value!;
+                        _doneList[index].isDone = value!;
                         Timer(const Duration(milliseconds: 250), () {
+                          OrganiserDatabase.instance
+                              .updateTodo(_doneList[index]);
                           appState.switchListsTodo(
                             _doneList,
                             _TodoList,
@@ -167,6 +205,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
                 ),
                 onDismissed: (DismissDirection direction) {
                   setState(() {
+                    OrganiserDatabase.instance.deleteTodo(_doneList[index]);
                     _doneList.removeAt(index);
                   });
                 },
