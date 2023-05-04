@@ -24,30 +24,16 @@ class TodoListScreen extends StatefulWidget {
 class _TodoListScreenState extends State<TodoListScreen> {
   //late List<Todo> todos = [];
   //late List<Todo> donetodos = [];
-  bool isLoading = false;
+  //bool isLoading = false;
 
-  @override
+  /*@override
   void initState() {
     super.initState();
 
     refreshTodos();
-  }
-
-  /*@override
-  void dispose() {
-    OrganiserDatabase.instance.close();
-
-    super.dispose();
   }*/
 
-  void test(int number) {
-    for (int i = 0; i < number; i++) {
-      Todo cos = Todo(value: '$i numer', isDone: false);
-      var add = OrganiserDatabase.instance.create(cos);
-    }
-  }
-
-  Future refreshTodos() async {
+  /*Future refreshTodos() async {
     var appState = context.watch<MyAppState>();
     setState(() => isLoading = true);
 
@@ -55,7 +41,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
     appState.DoneList = await OrganiserDatabase.instance.readTodos(true);
 
     setState(() => isLoading = false);
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -133,12 +119,9 @@ class _TodoListScreenState extends State<TodoListScreen> {
                       setState(() {
                         _TodoList[index].isDone = value!;
                         Timer(const Duration(milliseconds: 250), () {
-                          OrganiserDatabase.instance
-                              .updateTodo(_TodoList[index]);
                           appState.switchListsTodo(
                             _TodoList,
                             _doneList,
-                            _TodoList[index],
                             index,
                           );
                         });
@@ -148,7 +131,6 @@ class _TodoListScreenState extends State<TodoListScreen> {
                 ),
                 onDismissed: (DismissDirection direction) {
                   setState(() {
-                    OrganiserDatabase.instance.deleteTodo(_TodoList[index]);
                     _TodoList.removeAt(index);
                   });
                 },
@@ -190,12 +172,9 @@ class _TodoListScreenState extends State<TodoListScreen> {
                       setState(() {
                         _doneList[index].isDone = value!;
                         Timer(const Duration(milliseconds: 250), () {
-                          OrganiserDatabase.instance
-                              .updateTodo(_doneList[index]);
                           appState.switchListsTodo(
                             _doneList,
                             _TodoList,
-                            _doneList[index],
                             index,
                           );
                         });
@@ -205,7 +184,6 @@ class _TodoListScreenState extends State<TodoListScreen> {
                 ),
                 onDismissed: (DismissDirection direction) {
                   setState(() {
-                    OrganiserDatabase.instance.deleteTodo(_doneList[index]);
                     _doneList.removeAt(index);
                   });
                 },
