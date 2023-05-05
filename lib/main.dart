@@ -53,24 +53,35 @@ class MyApp extends StatelessWidget {
 // ------ CHANGE NOTIFIER ------
 
 class MyAppState extends ChangeNotifier {
+  MyAppState() {
+    importTodo();
+  }
+
   late List<Todo> TodoList = [];
   late List<Todo> DoneList = [];
   var db = OrganiserDatabase.instance;
+
+  void importTodo() async {
+    TodoList = await db.readTodos(false);
+    DoneList = await db.readTodos(true);
+    notifyListeners();
+  }
 
   // CREATING NEW TO-DO LIST ELEMENTS
   Future<void> addTodo(var title) async {
     var newTodo = Todo(value: title, isDone: false);
     await db.create(newTodo);
-    //TodoList.insert(0, newTodo);
+    TodoList.insert(0, newTodo);
 
     notifyListeners();
   }
 
   // FINISHING A TASK AND DELETING IT FROM TO DO'S
-  Future<void> switchListsTodo(Todo task) async {
+  Future<void> switchListsTodo(
+      List<Todo> fromList, List<Todo> toList, Todo task, int idx) async {
     //task.isDone = !task.isDone;
-    //toList.insert(0, fromList[idx]);
-    //fromList.removeAt(idx);
+    toList.insert(0, fromList[idx]);
+    fromList.removeAt(idx);
     await db.updateTodo(task);
 
     notifyListeners();
@@ -78,6 +89,7 @@ class MyAppState extends ChangeNotifier {
 
   void clearlist() {
     db.deleteDoneTodo();
+    DoneList.clear();
     notifyListeners();
   }
 
