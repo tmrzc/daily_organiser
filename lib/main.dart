@@ -58,20 +58,20 @@ class MyAppState extends ChangeNotifier {
   var db = OrganiserDatabase.instance;
 
   // CREATING NEW TO-DO LIST ELEMENTS
-  void addTodo(var title) {
+  Future<void> addTodo(var title) async {
     var newTodo = Todo(value: title, isDone: false);
-    db.create(newTodo);
+    await db.create(newTodo);
     //TodoList.insert(0, newTodo);
 
     notifyListeners();
   }
 
   // FINISHING A TASK AND DELETING IT FROM TO DO'S
-  void switchListsTodo(Todo task) {
+  Future<void> switchListsTodo(Todo task) async {
     //task.isDone = !task.isDone;
     //toList.insert(0, fromList[idx]);
     //fromList.removeAt(idx);
-    db.updateTodo(task);
+    await db.updateTodo(task);
 
     notifyListeners();
   }

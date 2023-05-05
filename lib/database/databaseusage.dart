@@ -66,7 +66,7 @@ class OrganiserDatabase {
 
     final listOfMaps = await db.query(tableTodo,
         columns: TodoTable.values,
-        orderBy: '${TodoTable.id} DESC',
+        orderBy: '${TodoTable.id} ASC',
         where: '${TodoTable.isDone} = ?',
         whereArgs: [status ? 1 : 0]);
 
