@@ -57,6 +57,30 @@ class MyAppState extends ChangeNotifier {
   late List<Todo> DoneList = [];
   var db = OrganiserDatabase.instance;
 
+  // CREATING NEW TO-DO LIST ELEMENTS
+  void addTodo(var title) {
+    var newTodo = Todo(value: title, isDone: false);
+    db.create(newTodo);
+    //TodoList.insert(0, newTodo);
+
+    notifyListeners();
+  }
+
+  // FINISHING A TASK AND DELETING IT FROM TO DO'S
+  void switchListsTodo(Todo task) {
+    //task.isDone = !task.isDone;
+    //toList.insert(0, fromList[idx]);
+    //fromList.removeAt(idx);
+    db.updateTodo(task);
+
+    notifyListeners();
+  }
+
+  void clearlist() {
+    db.deleteDoneTodo();
+    notifyListeners();
+  }
+
   List trackers = [];
 
   void addTracker(String title, TrackerType type, int colorId,
@@ -89,27 +113,6 @@ class MyAppState extends ChangeNotifier {
   void removeTracker(int index) {
     trackers.removeAt(index);
 
-    notifyListeners();
-  }
-
-  // CREATING NEW TO-DO LIST ELEMENTS
-  void addTodo(var title) {
-    var newTodo = Todo(value: title, isDone: false);
-    TodoList.insert(0, newTodo);
-
-    notifyListeners();
-  }
-
-  // FINISHING A TASK AND DELETING IT FROM TO DO'S
-  void switchListsTodo(List fromList, List toList, int idx) {
-    toList.insert(0, fromList[idx]);
-    fromList.removeAt(idx);
-
-    notifyListeners();
-  }
-
-  void clearlist(var listtoclear) {
-    listtoclear.clear();
     notifyListeners();
   }
 }

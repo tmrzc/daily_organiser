@@ -32,7 +32,7 @@ class OrganiserDatabase {
     await db.execute('''
     CREATE TABLE $tableTodo (
       ${TodoTable.id} $idType,
-      ${TodoTable.value_todo} $textType
+      ${TodoTable.value_todo} $textType,
       ${TodoTable.isDone} $boolType
     )''');
 
@@ -66,6 +66,7 @@ class OrganiserDatabase {
 
     final listOfMaps = await db.query(tableTodo,
         columns: TodoTable.values,
+        orderBy: '${TodoTable.id} DESC',
         where: '${TodoTable.isDone} = ?',
         whereArgs: [status ? 1 : 0]);
 
@@ -91,6 +92,13 @@ class OrganiserDatabase {
       where: '${TodoTable.id} = ?',
       whereArgs: [todo.id],
     );
+  }
+
+  Future<int> deleteDoneTodo() async {
+    final db = await instance.database;
+
+    return db
+        .delete(tableTodo, where: '${TodoTable.isDone} = ?', whereArgs: [1]);
   }
 
   Future close() async {
