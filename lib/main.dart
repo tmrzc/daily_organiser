@@ -53,9 +53,9 @@ class MyApp extends StatelessWidget {
 // ------ CHANGE NOTIFIER ------
 
 class MyAppState extends ChangeNotifier {
-  MyAppState() {
+  /*MyAppState() {
     importTodo();
-  }
+  }*/
 
   late List<Todo> TodoList = [];
   late List<Todo> DoneList = [];

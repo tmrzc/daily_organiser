@@ -26,12 +26,12 @@ class _TodoListScreenState extends State<TodoListScreen> {
   late List<Todo> donetodos = [];
   bool isLoading = false;
 
-  /*@override
+  @override
   void initState() {
     super.initState();
 
     refreshTodos();
-  }*/
+  }
 
   /*@override
   void didChangeDependencies() {
@@ -39,17 +39,18 @@ class _TodoListScreenState extends State<TodoListScreen> {
     super.didChangeDependencies();
 
     refreshTodos();
-  }
+  }*/
 
   Future<void> refreshTodos() async {
-    var appState = context.watch<MyAppState>();
+    //var appState = context.watch<MyAppState>();
     setState(() => isLoading = true);
 
-    appState.TodoList = await OrganiserDatabase.instance.readTodos(false);
-    appState.DoneList = await OrganiserDatabase.instance.readTodos(true);
+    Provider.of<MyAppState>(context, listen: false).importTodo();
+    //appState.TodoList = await OrganiserDatabase.instance.readTodos(false);
+    //appState.DoneList = await OrganiserDatabase.instance.readTodos(true);
 
     setState(() => isLoading = false);
-  }*/
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -106,97 +107,106 @@ class _TodoListScreenState extends State<TodoListScreen> {
           ),
 
           // TASKS TO DO PART OF THE LIST
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (BuildContext context, int index) {
-                return Dismissible(
-                  key: ValueKey(_TodoList[index]),
-                  direction: DismissDirection.endToStart,
-                  background: Container(
-                    color: const Color.fromARGB(255, 252, 161, 154),
-                    alignment: Alignment.centerRight,
-                    child: const Padding(
-                      padding: EdgeInsets.fromLTRB(0, 0, 20, 0),
-                      child: Icon(Icons.delete_outline),
-                    ),
-                  ),
-                  child: ListTile(
-                    title: Text(_TodoList[index].value),
-                    leading: Checkbox(
-                      value: _TodoList[index].isDone,
-                      onChanged: (bool? value) {
-                        setState(() {
-                          _TodoList[index].isDone = value!;
-                          Timer(const Duration(milliseconds: 200), () {
-                            appState.switchListsTodo(
-                                _TodoList, _doneList, _TodoList[index], index);
+          isLoading
+              ? SliverToBoxAdapter(
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              : SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (BuildContext context, int index) {
+                      return Dismissible(
+                        key: ValueKey(_TodoList[index]),
+                        direction: DismissDirection.endToStart,
+                        background: Container(
+                          color: const Color.fromARGB(255, 252, 161, 154),
+                          alignment: Alignment.centerRight,
+                          child: const Padding(
+                            padding: EdgeInsets.fromLTRB(0, 0, 20, 0),
+                            child: Icon(Icons.delete_outline),
+                          ),
+                        ),
+                        child: ListTile(
+                          title: Text(_TodoList[index].value),
+                          leading: Checkbox(
+                            value: _TodoList[index].isDone,
+                            onChanged: (bool? value) {
+                              setState(() {
+                                _TodoList[index].isDone = value!;
+                                Timer(const Duration(milliseconds: 200), () {
+                                  appState.switchListsTodo(_TodoList, _doneList,
+                                      _TodoList[index], index);
+                                });
+                              });
+                            },
+                          ),
+                        ),
+                        onDismissed: (DismissDirection direction) {
+                          setState(() {
+                            appState.db.deleteTodo(_TodoList[index]);
+                            _TodoList.removeAt(index);
                           });
-                        });
-                      },
-                    ),
+                        },
+                      );
+                    },
+                    childCount: _TodoList.length,
                   ),
-                  onDismissed: (DismissDirection direction) {
-                    setState(() {
-                      appState.db.deleteTodo(_TodoList[index]);
-                      _TodoList.removeAt(index);
-                    });
-                  },
-                );
-              },
-              childCount: _TodoList.length,
-            ),
-          ),
+                ),
 
           dividerWithButton(appState),
 
           // DONE TASKS PART OF THE LIST
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (BuildContext context, int index) {
-                return Dismissible(
-                  key: ValueKey(_doneList[index]),
-                  direction: DismissDirection.endToStart,
-                  background: Container(
-                    color: const Color.fromARGB(255, 252, 161, 154),
-                    alignment: Alignment.centerRight,
-                    child: const Padding(
-                      padding: EdgeInsets.fromLTRB(0, 0, 20, 0),
-                      child: Icon(Icons.delete_outline),
-                    ),
-                  ),
-                  child: ListTile(
-                    title: Text(
-                      _doneList[index].value,
-                      style: TextStyle(
-                        decoration: TextDecoration.lineThrough,
-                        color: widget.theme.disabledColor,
-                      ),
-                    ),
-                    leading: Checkbox(
-                      fillColor: MaterialStateProperty.resolveWith(getColor),
-                      value: _doneList[index].isDone,
-                      onChanged: (bool? value) {
-                        setState(() {
-                          _doneList[index].isDone = value!;
-                          Timer(const Duration(milliseconds: 200), () {
-                            appState.switchListsTodo(
-                                _doneList, _TodoList, _doneList[index], index);
+          isLoading
+              ? SliverToBoxAdapter(
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              : SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (BuildContext context, int index) {
+                      return Dismissible(
+                        key: ValueKey(_doneList[index]),
+                        direction: DismissDirection.endToStart,
+                        background: Container(
+                          color: const Color.fromARGB(255, 252, 161, 154),
+                          alignment: Alignment.centerRight,
+                          child: const Padding(
+                            padding: EdgeInsets.fromLTRB(0, 0, 20, 0),
+                            child: Icon(Icons.delete_outline),
+                          ),
+                        ),
+                        child: ListTile(
+                          title: Text(
+                            _doneList[index].value,
+                            style: TextStyle(
+                              decoration: TextDecoration.lineThrough,
+                              color: widget.theme.disabledColor,
+                            ),
+                          ),
+                          leading: Checkbox(
+                            fillColor:
+                                MaterialStateProperty.resolveWith(getColor),
+                            value: _doneList[index].isDone,
+                            onChanged: (bool? value) {
+                              setState(() {
+                                _doneList[index].isDone = value!;
+                                Timer(const Duration(milliseconds: 200), () {
+                                  appState.switchListsTodo(_doneList, _TodoList,
+                                      _doneList[index], index);
+                                });
+                              });
+                            },
+                          ),
+                        ),
+                        onDismissed: (DismissDirection direction) {
+                          setState(() {
+                            appState.db.deleteTodo(_doneList[index]);
+                            _doneList.removeAt(index);
                           });
-                        });
-                      },
-                    ),
+                        },
+                      );
+                    },
+                    childCount: _doneList.length,
                   ),
-                  onDismissed: (DismissDirection direction) {
-                    setState(() {
-                      appState.db.deleteTodo(_doneList[index]);
-                      _doneList.removeAt(index);
-                    });
-                  },
-                );
-              },
-              childCount: _doneList.length,
-            ),
-          ),
+                ),
         ],
       ),
     );
