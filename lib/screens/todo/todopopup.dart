@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
-import '../../main.dart';
+import '../../provider.dart';
 
 // ------ DIALOG DISPLAYED FOR ADDING NEW TO-DO'S ------
 

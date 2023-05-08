@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
-import '../../main.dart';
+import '../../provider.dart';
 import 'todopopup.dart';
 
 // ------ TO-DO LIST SCREEN DISPLAYING THE LIST ------
@@ -40,19 +40,10 @@ class _TodoListScreenState extends State<TodoListScreen> {
     super.dispose();
   }*/
 
-  void test(int number) {
-    for (int i = 0; i < number; i++) {
-      Todo cos = Todo(value: '$i numer', isDone: false);
-      var add = OrganiserDatabase.instance.create(cos);
-    }
-  }
-
   Future refreshTodos() async {
-    var appState = context.watch<MyAppState>();
     setState(() => isLoading = true);
 
-    appState.TodoList = await OrganiserDatabase.instance.readTodos(false);
-    appState.DoneList = await OrganiserDatabase.instance.readTodos(true);
+    Provider.of<MyAppState>(context, listen: false).importTodo();
 
     setState(() => isLoading = false);
   }
@@ -76,145 +67,173 @@ class _TodoListScreenState extends State<TodoListScreen> {
     var _TodoList = appState.TodoList;
     var _doneList = appState.DoneList;
 
-    return CustomScrollView(
-      slivers: <Widget>[
-        // APP BAR WITH TITLE OF A SCREEN
-        SliverAppBar.medium(
-          pinned: true,
-          actions: [
-            IconButton(
-              onPressed: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => TodoPopup(),
-                    ));
-              },
-              icon: Icon(
-                Icons.add,
-                size: 40,
-              ),
-            )
-          ],
-          flexibleSpace: FlexibleSpaceBar(
-            centerTitle: false,
-            title: Text(
-              "To do:",
-              style: GoogleFonts.poppins(
-                fontSize: 30,
-                fontWeight: FontWeight.w400,
-                color: widget.theme.colorScheme.onBackground,
-              ),
-            ),
-            background: Container(color: widget.theme.colorScheme.background),
-          ),
-        ),
-
-        // TASKS TO DO PART OF THE LIST
-        SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (BuildContext context, int index) {
-              return Dismissible(
-                key: ValueKey(_TodoList[index]),
-                direction: DismissDirection.endToStart,
-                background: Container(
-                  color: const Color.fromARGB(255, 252, 161, 154),
-                  alignment: Alignment.centerRight,
-                  child: const Padding(
-                    padding: EdgeInsets.fromLTRB(0, 0, 20, 0),
-                    child: Icon(Icons.delete_outline),
-                  ),
-                ),
-                child: ListTile(
-                  title: Text(_TodoList[index].value),
-                  leading: Checkbox(
-                    value: _TodoList[index].isDone,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        _TodoList[index].isDone = value!;
-                        Timer(const Duration(milliseconds: 250), () {
-                          OrganiserDatabase.instance
-                              .updateTodo(_TodoList[index]);
-                          appState.switchListsTodo(
-                            _TodoList,
-                            _doneList,
-                            _TodoList[index],
-                            index,
-                          );
-                        });
-                      });
-                    },
-                  ),
-                ),
-                onDismissed: (DismissDirection direction) {
-                  setState(() {
-                    OrganiserDatabase.instance.deleteTodo(_TodoList[index]);
-                    _TodoList.removeAt(index);
-                  });
-                },
-              );
-            },
-            childCount: _TodoList.length,
-          ),
-        ),
-
-        dividerWithButton(appState, _doneList),
-
-        // DONE TASKS PART OF THE LIST
-        SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (BuildContext context, int index) {
-              return Dismissible(
-                key: ValueKey(_doneList[index]),
-                direction: DismissDirection.endToStart,
-                background: Container(
-                  color: const Color.fromARGB(255, 252, 161, 154),
-                  alignment: Alignment.centerRight,
-                  child: const Padding(
-                    padding: EdgeInsets.fromLTRB(0, 0, 20, 0),
-                    child: Icon(Icons.delete_outline),
-                  ),
-                ),
-                child: ListTile(
-                  title: Text(
-                    _doneList[index].value,
-                    style: TextStyle(
-                      decoration: TextDecoration.lineThrough,
-                      color: widget.theme.disabledColor,
+    return Center(
+      child: isLoading
+          ? CustomScrollView(
+              slivers: <Widget>[
+                TodoTopBar(context),
+                SliverFillRemaining(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [CircularProgressIndicator()],
                     ),
                   ),
-                  leading: Checkbox(
-                    fillColor: MaterialStateProperty.resolveWith(getColor),
-                    value: _doneList[index].isDone,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        _doneList[index].isDone = value!;
-                        Timer(const Duration(milliseconds: 250), () {
-                          OrganiserDatabase.instance
-                              .updateTodo(_doneList[index]);
-                          appState.switchListsTodo(
-                            _doneList,
-                            _TodoList,
-                            _doneList[index],
-                            index,
-                          );
-                        });
-                      });
-                    },
-                  ),
+                )
+              ],
+            )
+          : _TodoList.isEmpty && _doneList.isEmpty
+              ? CustomScrollView(
+                  slivers: <Widget>[
+                    TodoTopBar(context),
+                    SliverFillRemaining(
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Press the plus icon to add a to-do",
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  ],
+                )
+              : CustomScrollView(
+                  slivers: <Widget>[
+                    // APP BAR WITH TITLE OF A SCREEN
+                    TodoTopBar(context),
+
+                    // TASKS TO DO PART OF THE LIST
+                    _TodoList.isEmpty
+                        ? const SliverToBoxAdapter(
+                            child: Center(
+                              child: Padding(
+                                padding: EdgeInsets.fromLTRB(0, 20, 0, 20),
+                                child: Text(
+                                  "Press the plus icon to add a to-do",
+                                  style: TextStyle(color: Colors.grey),
+                                ),
+                              ),
+                            ),
+                          )
+                        : tasksLists(_TodoList, appState, _doneList, false),
+
+                    _doneList.isEmpty
+                        ? SliverToBoxAdapter()
+                        : dividerWithButton(appState, _doneList),
+
+                    // DONE TASKS PART OF THE LIST
+                    _doneList.isEmpty
+                        ? SliverToBoxAdapter()
+                        : tasksLists(
+                            _doneList, appState, _TodoList, true, getColor),
+                  ],
                 ),
-                onDismissed: (DismissDirection direction) {
-                  setState(() {
-                    OrganiserDatabase.instance.deleteTodo(_doneList[index]);
-                    _doneList.removeAt(index);
-                  });
-                },
-              );
-            },
-            childCount: _doneList.length,
+    );
+  }
+
+  // ------APP BAR WITH TITLE OF A SCREEN------
+  SliverAppBar TodoTopBar(BuildContext context) {
+    return SliverAppBar.medium(
+      pinned: true,
+      actions: [
+        IconButton(
+          onPressed: () {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => TodoPopup(),
+                ));
+          },
+          icon: Icon(
+            Icons.add,
+            size: 40,
+          ),
+        )
+      ],
+      flexibleSpace: FlexibleSpaceBar(
+        centerTitle: false,
+        title: Text(
+          "To do:",
+          style: GoogleFonts.poppins(
+            fontSize: 30,
+            fontWeight: FontWeight.w400,
+            color: widget.theme.colorScheme.onBackground,
           ),
         ),
-      ],
+        background: Container(color: widget.theme.colorScheme.background),
+      ),
+    );
+  }
+
+  // ------TASKS LISTS WIDGET FOR BOTH LISTS------
+  SliverList tasksLists(
+      List<Todo> list1, MyAppState appState, List<Todo> list2, bool isDone,
+      [Color getColor(Set<MaterialState> states)?]) {
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (BuildContext context, int index) {
+          return Dismissible(
+            key: ValueKey(list1[index]),
+            direction: DismissDirection.endToStart,
+            background: Container(
+              color: const Color.fromARGB(255, 252, 161, 154),
+              alignment: Alignment.centerRight,
+              child: const Padding(
+                padding: EdgeInsets.fromLTRB(0, 0, 20, 0),
+                child: Icon(Icons.delete_outline),
+              ),
+            ),
+            child: ListTile(
+              title: Text(
+                list1[index].value,
+                style: isDone
+                    ? TextStyle(
+                        decoration: TextDecoration.lineThrough,
+                        color: widget.theme.disabledColor,
+                      )
+                    : TextStyle(),
+              ),
+              leading: isDone
+                  ? Checkbox(
+                      fillColor: MaterialStateProperty.resolveWith(getColor!),
+                      value: list1[index].isDone,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          list1[index].isDone = value!;
+                          Timer(const Duration(milliseconds: 200), () {
+                            appState.switchListsTodo(
+                                list1, list2, list1[index], index);
+                          });
+                        });
+                      },
+                    )
+                  : Checkbox(
+                      value: list1[index].isDone,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          list1[index].isDone = value!;
+                          Timer(const Duration(milliseconds: 200), () {
+                            appState.switchListsTodo(
+                                list1, list2, list1[index], index);
+                          });
+                        });
+                      },
+                    ),
+            ),
+            onDismissed: (DismissDirection direction) {
+              setState(() {
+                appState.db.deleteTodo(list1[index]);
+                list1.removeAt(index);
+              });
+            },
+          );
+        },
+        childCount: list1.length,
+      ),
     );
   }
 
@@ -236,7 +255,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
               TextButton(
                 onPressed: () {
                   setState(() {
-                    appState.clearlist(_doneList);
+                    appState.clearlist();
                   });
                 },
                 child: Text(

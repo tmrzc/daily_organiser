@@ -3,9 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'screens/todo/todoscreen.dart';
 import 'screens/tracker/trackerscreen.dart';
-import 'database/databaseusage.dart';
-import 'database/todomodel.dart';
-import 'screens/todo/todoscreen.dart';
+import 'provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -47,73 +45,6 @@ class MyApp extends StatelessWidget {
         home: MyHomePage(),
       ),
     );
-  }
-}
-
-// ------ CHANGE NOTIFIER ------
-
-class MyAppState extends ChangeNotifier {
-  late List<Todo> TodoList = [];
-  late List<Todo> DoneList = [];
-  var db = OrganiserDatabase.instance;
-
-  List trackers = [];
-
-  void addTracker(String title, TrackerType type, int colorId,
-      [int rangeMax = 10]) {
-    Map tracker = {
-      'type': type,
-      'title': title,
-      'rangeMax': rangeMax,
-      'state': TrackerState.enabled,
-      'color_id': colorId,
-    };
-    trackers.add(tracker);
-
-    notifyListeners();
-  }
-
-  void saveValueToTracker(Map tracker, double value) {
-    tracker['value'] = value;
-    tracker['state'] = TrackerState.disabled;
-
-    notifyListeners();
-  }
-
-  void enableTracker(Map tracker) {
-    tracker['state'] = TrackerState.enabled;
-
-    notifyListeners();
-  }
-
-  void removeTracker(int index) {
-    trackers.removeAt(index);
-
-    notifyListeners();
-  }
-
-  // CREATING NEW TO-DO LIST ELEMENTS
-  void addTodo(var title) {
-    var newTodo = Todo(value: title, isDone: false);
-    db.create(newTodo);
-    TodoList.insert(0, newTodo);
-
-    notifyListeners();
-  }
-
-  // FINISHING A TASK AND DELETING IT FROM TO DO'S
-  void switchListsTodo(List fromList, List toList, var switchingTask, int idx) {
-    //toList.insert(0, switchingTask);
-    db.updateTodo(fromList[idx]);
-    toList.add(switchingTask);
-    fromList.removeAt(idx);
-
-    notifyListeners();
-  }
-
-  void clearlist(var listtoclear) {
-    listtoclear.clear();
-    notifyListeners();
   }
 }
 

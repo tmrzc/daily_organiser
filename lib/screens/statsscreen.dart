@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
 import '../main.dart';
+import '../../provider.dart';
 
 // ------ STATISTICS LIST SCREEN DISPLAYING THE LIST ------
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../main.dart';
+import '../../provider.dart';
 import 'trackercard.dart';
 
 // ------ SCREEN DISPLAYED FOR CRATING NEW TRACKERS ------

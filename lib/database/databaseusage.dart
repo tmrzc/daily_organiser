@@ -93,6 +93,16 @@ class OrganiserDatabase {
     );
   }
 
+  Future<int> deleteDoneTodo() async {
+    final db = await instance.database;
+
+    return db.delete(
+      tableTodo,
+      where: '${TodoTable.isDone} = ?',
+      whereArgs: [1],
+    );
+  }
+
   Future close() async {
     final db = await instance.database;
 

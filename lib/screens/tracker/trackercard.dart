@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'dart:async';
 import '../../main.dart';
+import '../../provider.dart';
 import 'trackerpopup.dart';
 
 class trackerCardListItem extends StatefulWidget {
