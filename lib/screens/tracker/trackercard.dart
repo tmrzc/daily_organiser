@@ -5,7 +5,7 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'dart:async';
 import '../../main.dart';
 import '../../provider.dart';
-import 'trackerpopup.dart';
+import 'trackerscreen.dart';
 
 class trackerCardListItem extends StatefulWidget {
   trackerCardListItem({

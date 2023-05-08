@@ -15,20 +15,6 @@ final appTheme = ThemeData(
       ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 147, 166, 144)),
 );
 
-List trackerColors = [
-  {'name': 'DEFAULT', 'theme': appTheme.colorScheme.background},
-  {'name': 'RED', 'theme': Color.fromARGB(255, 252, 191, 219)},
-  {'name': 'BLUE', 'theme': Color.fromARGB(255, 196, 231, 248)},
-  {'name': 'MINT', 'theme': const Color.fromARGB(255, 211, 248, 226)},
-  {'name': 'VIOLET', 'theme': const Color.fromARGB(255, 228, 193, 249)},
-  {'name': 'YELLOW', 'theme': const Color.fromARGB(255, 237, 231, 177)},
-];
-
-enum TrackerState { enabled, disabled }
-
-// ENUM FOR SELECTING TYPE OF TRACKER TO ADD
-enum TrackerType { score, stars, counter, hours }
-
 // ------- ROOT OF APLICATION ------
 
 class MyApp extends StatelessWidget {
