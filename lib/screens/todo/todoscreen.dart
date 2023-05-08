@@ -225,8 +225,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
                     ),
             ),
             onDismissed: (DismissDirection direction) {
+              appState.db.deleteTodo(list1[index]);
               setState(() {
-                appState.db.deleteTodo(list1[index]);
                 list1.removeAt(index);
               });
             },

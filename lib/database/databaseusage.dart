@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'todomodel.dart';
+import 'trackermodel.dart';
 import 'package:path/path.dart';
 
 class OrganiserDatabase {
@@ -32,24 +33,24 @@ class OrganiserDatabase {
     await db.execute('''
     CREATE TABLE $tableTodo (
       ${TodoTable.id} $idType,
-      ${TodoTable.value_todo} $textType
+      ${TodoTable.value_todo} $textType,
       ${TodoTable.isDone} $boolType
     )''');
 
-    /*await db.execute('''
+    await db.execute('''
     CREATE TABLE $tableTracker (
       ${TrackerTable.id_tracker} $idType,
       ${TrackerTable.name_tracker} $textType,
       ${TrackerTable.type_tracker} $textType,
       ${TrackerTable.color_id} $integerType,
-      ${TrackerTable.range_tracker} $integerType
-    )''');*/
+      ${TrackerTable.range_tracker} $integerType,
+      ${TrackerTable.isLocked} $boolType
+    )''');
 
     /*await db.execute('''
-    CREATE TABLE trackersStats (
-      tracker_id INTEGER NOT NULL,
-      date_submitted TEXT NOT NULL,
-      value_submitted REAL NOT NULL
+    CREATE TABLE $tableStats (
+      ${TrackerStats.id_stats} $idType,
+      ${TrackerStats.date_stats} $
     )''');*/
   }
 
@@ -67,6 +68,7 @@ class OrganiserDatabase {
     final listOfMaps = await db.query(tableTodo,
         columns: TodoTable.values,
         where: '${TodoTable.isDone} = ?',
+        orderBy: '${TodoTable.id} DESC',
         whereArgs: [status ? 1 : 0]);
 
     return listOfMaps.map((json) => Todo.fromJson(json)).toList();
