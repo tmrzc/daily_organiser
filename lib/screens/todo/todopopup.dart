@@ -72,8 +72,6 @@ class _TodoPopup extends State<TodoPopup> {
 
                 if (isValidForm) {
                   appState.addTodo(_titlecontroller.text);
-                  _titlecontroller.clear();
-
                   Navigator.of(context).pop();
                 }
               },
