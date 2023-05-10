@@ -1,3 +1,4 @@
+import 'package:daily_organiser/database/trackermodel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6,6 +7,7 @@ import 'dart:async';
 import '../../main.dart';
 import '../../provider.dart';
 import 'trackerscreen.dart';
+import 'package:daily_organiser/database/trackermodel.dart';
 
 class trackerCardListItem extends StatefulWidget {
   trackerCardListItem({
@@ -13,11 +15,13 @@ class trackerCardListItem extends StatefulWidget {
     required this.theme,
     required this.trackerInfo,
     this.index = 0,
+    this.isPreview = false,
   });
 
   final ThemeData theme;
-  var trackerInfo;
+  Tracker trackerInfo;
   int index;
+  bool isPreview;
 
   @override
   State<trackerCardListItem> createState() => _trackerCardListItem();
@@ -49,7 +53,7 @@ class _trackerCardListItem extends State<trackerCardListItem> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
       child: Card(
-        color: trackerColors[trackerInfo['color_id']]['theme'],
+        color: trackerColors[trackerInfo.color]['theme'],
         child: Column(
           children: [
             Padding(
@@ -58,82 +62,94 @@ class _trackerCardListItem extends State<trackerCardListItem> {
                 children: [
                   Expanded(
                     child: Text(
-                      trackerInfo['title'],
+                      trackerInfo.name,
                       style: GoogleFonts.poppins(
                         fontSize: 30,
                         fontWeight: FontWeight.w400,
                       ),
                     ),
                   ),
-                  IconButton(
-                    onPressed: () {
-                      showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return SimpleDialog(
-                              title: const Text(
-                                  "Delete this tracker and it's history?"),
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceAround,
-                                  children: [
-                                    ElevatedButton(
-                                      onPressed: () {
-                                        setState(() {
-                                          appState.removeTracker(widget.index);
-                                        });
-                                        Navigator.pop(context);
-                                      },
-                                      child: const Padding(
-                                        padding:
-                                            EdgeInsets.fromLTRB(20, 0, 20, 0),
-                                        child: Text('Yes'),
-                                      ),
-                                    ),
-                                    ElevatedButton(
-                                      style: ButtonStyle(
-                                        backgroundColor:
-                                            MaterialStateColor.resolveWith(
-                                                (states) =>
-                                                    widget.theme.shadowColor),
-                                      ),
-                                      onPressed: () => Navigator.pop(context),
-                                      child: Padding(
-                                        padding: const EdgeInsets.fromLTRB(
-                                            20, 0, 20, 0),
-                                        child: Text(
-                                          'No',
-                                          style: TextStyle(
-                                            color:
-                                                MaterialStateColor.resolveWith(
-                                                    (states) => widget
-                                                        .theme.backgroundColor),
+                  widget.isPreview
+                      ? const Padding(
+                          padding: EdgeInsets.fromLTRB(20, 0, 0, 0),
+                          child: Icon(
+                            Icons.delete,
+                          ),
+                        )
+                      : IconButton(
+                          onPressed: () {
+                            showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return SimpleDialog(
+                                    title: const Text(
+                                        "Delete this tracker and it's history?"),
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceAround,
+                                        children: [
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              setState(() {
+                                                appState
+                                                    .removeTracker(trackerInfo);
+                                              });
+                                              Navigator.pop(context);
+                                            },
+                                            child: const Padding(
+                                              padding: EdgeInsets.fromLTRB(
+                                                  20, 0, 20, 0),
+                                              child: Text('Yes'),
+                                            ),
                                           ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              ],
-                            );
-                          });
-                    },
-                    icon: const Padding(
-                      padding: EdgeInsets.fromLTRB(20, 0, 0, 0),
-                      child: Icon(
-                        Icons.delete,
-                      ),
-                    ),
-                  ),
+                                          ElevatedButton(
+                                            style: ButtonStyle(
+                                              backgroundColor:
+                                                  MaterialStateColor
+                                                      .resolveWith((states) =>
+                                                          widget.theme
+                                                              .shadowColor),
+                                            ),
+                                            onPressed: () =>
+                                                Navigator.pop(context),
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.fromLTRB(
+                                                      20, 0, 20, 0),
+                                              child: Text(
+                                                'No',
+                                                style: TextStyle(
+                                                  color: MaterialStateColor
+                                                      .resolveWith((states) =>
+                                                          widget.theme
+                                                              .backgroundColor),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    ],
+                                  );
+                                });
+                          },
+                          icon: const Padding(
+                            padding: EdgeInsets.fromLTRB(20, 0, 0, 0),
+                            child: Icon(
+                              Icons.delete,
+                            ),
+                          ),
+                        ),
                 ],
               ),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(0, 20, 20, 10),
               child: typeDependantOptions(
-                trackerInfo['type'],
-                trackerInfo['state'],
+                stringConvertertoType(trackerInfo.type),
+                trackerInfo.isLocked,
+                widget.isPreview,
               ),
             ),
           ],
@@ -143,7 +159,7 @@ class _trackerCardListItem extends State<trackerCardListItem> {
   }
 
   // ------ MENU SWITCHER FOR DIFFERENT TYPES OF TRACEKRS ------
-  Widget typeDependantOptions(TrackerType type, var state) {
+  Widget typeDependantOptions(TrackerType type, bool isLocked, bool isPreview) {
     var appState = context.watch<MyAppState>();
 
     Row selectorRowTracker(Widget option) {
@@ -152,20 +168,22 @@ class _trackerCardListItem extends State<trackerCardListItem> {
           Expanded(child: option),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
-            child: IconButton(
-              icon: const Icon(Icons.check),
-              onPressed: () {
-                setState(() {
-                  appState.saveValueToTracker(widget.trackerInfo, rating);
-                });
-              },
-            ),
+            child: isPreview
+                ? const Icon(Icons.check)
+                : IconButton(
+                    icon: const Icon(Icons.check),
+                    onPressed: () {
+                      setState(() {
+                        appState.saveValueToTracker(widget.trackerInfo, rating);
+                      });
+                    },
+                  ),
           ),
         ],
       );
     }
 
-    if (state == TrackerState.disabled) {
+    if (isLocked) {
       return Row(
         children: [
           Expanded(child: disabledTracker()),
@@ -177,7 +195,6 @@ class _trackerCardListItem extends State<trackerCardListItem> {
                 setState(() {
                   appState.enableTracker(widget.trackerInfo);
                 });
-                print(appState.trackers);
               },
             ),
           ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'screens/tracker/trackerscreen.dart';
 import 'database/databaseusage.dart';
 import 'database/todomodel.dart';
+import 'database/trackermodel.dart';
 
 // ------ CHANGE NOTIFIER ------
 
@@ -23,7 +24,7 @@ class MyAppState extends ChangeNotifier {
   // CREATING NEW TO-DO LIST ELEMENTS
   Future<void> addTodo(var title) async {
     var newTodo = Todo(value: title, isDone: false);
-    await db.create(newTodo);
+    newTodo = await db.createTodo(newTodo);
     TodoList.insert(0, newTodo);
 
     notifyListeners();
@@ -46,37 +47,49 @@ class MyAppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  List trackers = [];
+  List<Tracker> trackers = [];
+
+  void importTrackers() async {
+    trackers = await db.readTrackers();
+    notifyListeners();
+  }
 
   void addTracker(String title, TrackerType type, int colorId,
-      [int rangeMax = 10]) {
-    Map tracker = {
-      'type': type,
-      'title': title,
-      'rangeMax': rangeMax,
-      'state': TrackerState.enabled,
-      'color_id': colorId,
-    };
+      [int rangeMax = 10]) async {
+    var tracker = Tracker(
+      name: title,
+      type: typeConverterToString(type),
+      color: colorId,
+      range: rangeMax,
+      isLocked: false,
+    );
+    tracker = await db.createTracker(tracker);
     trackers.add(tracker);
 
     notifyListeners();
   }
 
-  void saveValueToTracker(Map tracker, double value) {
-    tracker['value'] = value;
-    tracker['state'] = TrackerState.disabled;
+  void saveValueToTracker(Tracker tracker, double value) async {
+    tracker.value = value;
+    tracker.isLocked = true;
+
+    await db.updateTracker(tracker);
 
     notifyListeners();
   }
 
-  void enableTracker(Map tracker) {
-    tracker['state'] = TrackerState.enabled;
+  void enableTracker(Tracker tracker) async {
+    tracker.value = null;
+    tracker.isLocked = false;
+
+    await db.updateTracker(tracker);
 
     notifyListeners();
   }
 
-  void removeTracker(int index) {
-    trackers.removeAt(index);
+  void removeTracker(Tracker tracker) async {
+    await db.deleteTracker(tracker);
+    trackers.remove(tracker);
 
     notifyListeners();
   }

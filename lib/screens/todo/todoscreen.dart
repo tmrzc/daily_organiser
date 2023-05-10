@@ -26,7 +26,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
   //late List<Todo> donetodos = [];
   bool isLoading = false;
 
-  @override
+  /*@override
   void initState() {
     super.initState();
 
@@ -46,7 +46,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
     Provider.of<MyAppState>(context, listen: false).importTodo();
 
     setState(() => isLoading = false);
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {

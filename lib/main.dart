@@ -43,6 +43,32 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   var currentPageIndex = 0;
+  late bool isLoading;
+  late bool isLoading2;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    refreshTodos();
+    refreshTrackers();
+  }
+
+  Future refreshTodos() async {
+    setState(() => isLoading = true);
+
+    Provider.of<MyAppState>(context, listen: false).importTodo();
+
+    setState(() => isLoading = false);
+  }
+
+  Future refreshTrackers() async {
+    setState(() => isLoading2 = true);
+
+    Provider.of<MyAppState>(context, listen: false).importTrackers();
+
+    setState(() => isLoading2 = false);
+  }
 
   @override
   Widget build(BuildContext context) {

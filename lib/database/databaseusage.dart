@@ -29,6 +29,7 @@ class OrganiserDatabase {
     final textType = 'TEXT NOT NULL';
     final integerType = 'INTEGER NOT NULL';
     final boolType = 'BOOLEAN NOT NULL';
+    final doubleType = 'DOUBLE';
 
     await db.execute('''
     CREATE TABLE $tableTodo (
@@ -44,7 +45,8 @@ class OrganiserDatabase {
       ${TrackerTable.type_tracker} $textType,
       ${TrackerTable.color_id} $integerType,
       ${TrackerTable.range_tracker} $integerType,
-      ${TrackerTable.isLocked} $boolType
+      ${TrackerTable.isLocked} $boolType,
+      ${TrackerTable.value} $doubleType
     )''');
 
     /*await db.execute('''
@@ -54,7 +56,7 @@ class OrganiserDatabase {
     )''');*/
   }
 
-  Future<Todo> create(Todo todo) async {
+  Future<Todo> createTodo(Todo todo) async {
     final db = await instance.database;
 
     final id = await db.insert(tableTodo, todo.toJson());
@@ -102,6 +104,46 @@ class OrganiserDatabase {
       tableTodo,
       where: '${TodoTable.isDone} = ?',
       whereArgs: [1],
+    );
+  }
+
+  Future<Tracker> createTracker(Tracker tracker) async {
+    final db = await instance.database;
+
+    final id = await db.insert(tableTracker, tracker.toJson());
+
+    return tracker.copy(id: id);
+  }
+
+  Future<List<Tracker>> readTrackers() async {
+    final db = await instance.database;
+
+    final listOfMaps = await db.query(
+      tableTracker,
+      columns: TrackerTable.values,
+    );
+
+    return listOfMaps.map((json) => Tracker.fromJson(json)).toList();
+  }
+
+  Future<int> updateTracker(Tracker tracker) async {
+    final db = await instance.database;
+
+    return db.update(
+      tableTracker,
+      tracker.toJson(),
+      where: '${TrackerTable.id_tracker} = ?',
+      whereArgs: [tracker.id],
+    );
+  }
+
+  Future<int> deleteTracker(Tracker tracker) async {
+    final db = await instance.database;
+
+    return db.delete(
+      tableTracker,
+      where: '${TrackerTable.id_tracker} = ?',
+      whereArgs: [tracker.id],
     );
   }
 

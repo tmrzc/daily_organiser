@@ -5,6 +5,7 @@ import '../../main.dart';
 import '../../provider.dart';
 import 'trackercard.dart';
 import 'trackerscreen.dart';
+import 'package:daily_organiser/database/trackermodel.dart';
 
 // ------ SCREEN DISPLAYED FOR CRATING NEW TRACKERS ------
 
@@ -94,11 +95,14 @@ class _TrackerPopup extends State<TrackerPopup> {
 
                 trackerCardListItem(
                   theme: theme,
-                  trackerInfo: {
-                    'type': trackerView,
-                    'title': _titlecontroller.text,
-                    'color_id': _value ?? 0
-                  },
+                  trackerInfo: Tracker(
+                    name: _titlecontroller.text,
+                    type: typeConverterToString(trackerView),
+                    color: _value ?? 0,
+                    range: 10,
+                    isLocked: false,
+                  ),
+                  isPreview: true,
                 ),
 
                 HeaderText(widget: widget, header: 'Title'),

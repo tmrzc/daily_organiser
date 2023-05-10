@@ -7,15 +7,16 @@ import 'trackercard.dart';
 import 'package:daily_organiser/main.dart';
 
 List trackerColors = [
-  {'name': 'DEFAULT', 'theme': appTheme.colorScheme.background},
-  {'name': 'RED', 'theme': Color.fromARGB(255, 252, 191, 219)},
-  {'name': 'BLUE', 'theme': Color.fromARGB(255, 196, 231, 248)},
-  {'name': 'MINT', 'theme': const Color.fromARGB(255, 211, 248, 226)},
-  {'name': 'VIOLET', 'theme': const Color.fromARGB(255, 228, 193, 249)},
-  {'name': 'YELLOW', 'theme': const Color.fromARGB(255, 237, 231, 177)},
+  {'name': 'DEFAULT', 'theme': appTheme.colorScheme.background}, // idx 0
+  {'name': 'RED', 'theme': Color.fromARGB(255, 252, 191, 219)}, // idx 1
+  {'name': 'BLUE', 'theme': Color.fromARGB(255, 196, 231, 248)}, // idx 2
+  {'name': 'MINT', 'theme': const Color.fromARGB(255, 211, 248, 226)}, // idx 3
+  {'name': 'PINK', 'theme': const Color.fromARGB(255, 228, 193, 249)}, // idx 4
+  {
+    'name': 'YELLOW',
+    'theme': const Color.fromARGB(255, 237, 231, 177)
+  }, // idx 5
 ];
-
-enum TrackerState { enabled, disabled }
 
 // ENUM FOR SELECTING TYPE OF TRACKER TO ADD
 enum TrackerType { score, stars, counter, hours }
