@@ -39,6 +39,13 @@ class _TrackerScreenState extends State<TrackerScreen> {
   final formKey = GlobalKey<FormState>();
 
   @override
+  void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
+    super.didChangeDependencies();
+    Provider.of<MyAppState>(context, listen: false).dailyTrackerUnlock();
+  }
+
+  @override
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
     var appState = context.watch<MyAppState>();
@@ -53,6 +60,24 @@ class _TrackerScreenState extends State<TrackerScreen> {
       SliverAppBar.medium(
         pinned: true,
         actions: [
+          IconButton(
+            onPressed: () {
+              appState.checkDatabase();
+            },
+            icon: Icon(Icons.settings),
+          ),
+          IconButton(
+            onPressed: () {
+              appState.testUnockingTrackers();
+            },
+            icon: Icon(Icons.lock),
+          ),
+          IconButton(
+            onPressed: () {
+              appState.changeTodayTimeBackwards();
+            },
+            icon: Icon(Icons.calendar_today),
+          ),
           IconButton(
             onPressed: () {
               Navigator.push(

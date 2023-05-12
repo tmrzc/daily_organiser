@@ -1,7 +1,6 @@
 import 'package:daily_organiser/screens/tracker/trackerscreen.dart';
 
-final String tableTracker = 'trackersList';
-final String tableStats = 'statsList';
+const String tableTracker = 'trackersList';
 
 class TrackerTable {
   static final List<String> values = [
@@ -12,22 +11,17 @@ class TrackerTable {
     range_tracker,
     isLocked,
     value,
+    stats_id,
   ];
 
-  static final String id_tracker = 'id_tracker';
-  static final String name_tracker = 'name_tracker';
-  static final String type_tracker = 'type_tracker';
-  static final String color_id = 'color_id';
-  static final String range_tracker = 'range_tracker';
-  static final String isLocked = 'isLocked';
-  static final String value = 'value';
-}
-
-class TrackerStats {
-  static final String id_stats = 'id_stats';
-  static final String date_stats = 'date_stats';
-  static final String tracker_id = 'tracker_id';
-  static final String value_stats = 'value_stats';
+  static const String id_tracker = 'id_tracker';
+  static const String name_tracker = 'name_tracker';
+  static const String type_tracker = 'type_tracker';
+  static const String color_id = 'color_id';
+  static const String range_tracker = 'range_tracker';
+  static const String isLocked = 'isLocked';
+  static const String value = 'value';
+  static const String stats_id = 'stats_id';
 }
 
 class Tracker {
@@ -38,6 +32,7 @@ class Tracker {
   final int range;
   bool isLocked;
   double? value;
+  int? stats_id;
 
   Tracker({
     this.id,
@@ -47,6 +42,7 @@ class Tracker {
     required this.range,
     required this.isLocked,
     this.value,
+    this.stats_id,
   });
 
   Tracker copy(
@@ -56,7 +52,8 @@ class Tracker {
           int? color,
           int? range,
           bool? isLocked,
-          double? value}) =>
+          double? value,
+          int? stats_id}) =>
       Tracker(
         id: id ?? this.id,
         name: name ?? this.name,
@@ -65,6 +62,7 @@ class Tracker {
         range: range ?? this.range,
         isLocked: isLocked ?? this.isLocked,
         value: value ?? this.value,
+        stats_id: stats_id ?? this.stats_id,
       );
 
   static Tracker fromJson(Map<String, Object?> json) => Tracker(
@@ -75,6 +73,7 @@ class Tracker {
         range: json[TrackerTable.range_tracker] as int,
         isLocked: json[TrackerTable.isLocked] == 1,
         value: json[TrackerTable.value] as double?,
+        stats_id: json[TrackerTable.stats_id] as int?,
       );
 
   Map<String, Object?> toJson() => {
@@ -85,6 +84,7 @@ class Tracker {
         TrackerTable.range_tracker: range,
         TrackerTable.isLocked: isLocked ? 1 : 0,
         TrackerTable.value: value,
+        TrackerTable.stats_id: stats_id,
       };
 }
 

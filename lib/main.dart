@@ -1,4 +1,4 @@
-import 'package:daily_organiser/screens/statsscreen.dart';
+import 'package:daily_organiser/screens/stats/statsscreen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'screens/todo/todoscreen.dart';
@@ -45,6 +45,7 @@ class _MyHomePageState extends State<MyHomePage> {
   var currentPageIndex = 0;
   late bool isLoading;
   late bool isLoading2;
+  late bool isLoading3;
 
   @override
   void initState() {

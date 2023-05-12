@@ -137,9 +137,16 @@ class _TodoListScreenState extends State<TodoListScreen> {
 
   // ------APP BAR WITH TITLE OF A SCREEN------
   SliverAppBar TodoTopBar(BuildContext context) {
+    var appState = context.watch<MyAppState>();
     return SliverAppBar.medium(
       pinned: true,
       actions: [
+        IconButton(
+          onPressed: () {
+            appState.changeTodayTimeBackwards();
+          },
+          icon: Icon(Icons.calendar_today),
+        ),
         IconButton(
           onPressed: () {
             Navigator.push(

@@ -3,17 +3,21 @@ import 'screens/tracker/trackerscreen.dart';
 import 'database/databaseusage.dart';
 import 'database/todomodel.dart';
 import 'database/trackermodel.dart';
+import 'database/statsmodel.dart';
+import 'package:intl/intl.dart';
+import 'dart:math';
 
 // ------ CHANGE NOTIFIER ------
 
 class MyAppState extends ChangeNotifier {
-  /*MyAppState() {
-    importTodo();
-  }*/
-
   late List<Todo> TodoList = [];
   late List<Todo> DoneList = [];
+
+  List<Tracker> trackers = [];
+
   var db = OrganiserDatabase.instance;
+
+  // ------ TO DO ------
 
   void importTodo() async {
     TodoList = await db.readTodos(false);
@@ -47,7 +51,7 @@ class MyAppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  List<Tracker> trackers = [];
+  // ------ TRACKERS ------
 
   void importTrackers() async {
     trackers = await db.readTrackers();
@@ -72,6 +76,16 @@ class MyAppState extends ChangeNotifier {
   void saveValueToTracker(Tracker tracker, double value) async {
     tracker.value = value;
     tracker.isLocked = true;
+    DateTime todaysDate = DateTime.now();
+    Stat tracker_stat = Stat(
+      tracker_id: tracker.id!,
+      year: todaysDate.year,
+      month: todaysDate.month,
+      day: todaysDate.day,
+      value: tracker.value!,
+    );
+    tracker_stat = await db.createStat(tracker_stat);
+    tracker.stats_id = tracker_stat.id;
 
     await db.updateTracker(tracker);
 
@@ -82,6 +96,9 @@ class MyAppState extends ChangeNotifier {
     tracker.value = null;
     tracker.isLocked = false;
 
+    await db.deleteStat(tracker.stats_id!);
+    tracker.stats_id = null;
+
     await db.updateTracker(tracker);
 
     notifyListeners();
@@ -89,8 +106,80 @@ class MyAppState extends ChangeNotifier {
 
   void removeTracker(Tracker tracker) async {
     await db.deleteTracker(tracker);
+    await db.clearAfterDeletingTracker(tracker.id!);
     trackers.remove(tracker);
 
     notifyListeners();
+  }
+
+  void dailyTrackerUnlock() async {
+    var list = await db.checkSavedDay();
+    DateTime now = DateTime.now();
+
+    bool isSameDay(DateTime? dateA, DateTime? dateB) {
+      return dateA?.year == dateB?.year &&
+          dateA?.month == dateB?.month &&
+          dateA?.day == dateB?.day;
+    }
+
+    if (list.isEmpty) {
+      await db.resetTime(now.toIso8601String());
+
+      notifyListeners();
+    } else {
+      DateTime saved_time = DateTime.parse(list[0]['current_time']);
+      if (!isSameDay(now, saved_time)) {
+        await db.resetTime(now.toIso8601String());
+        await db.unlockAllTrackers();
+        importTrackers();
+
+        notifyListeners();
+      }
+    }
+  }
+
+  // ------ STATS ------
+
+  // ------ TESTING ------
+  void fillUpTrackersStats(int howManyDaysToFabricate) async {
+    for (int i = 0; i < trackers.length; i++) {
+      for (int j = 0; j < howManyDaysToFabricate; j++) {
+        var randGenerator = Random();
+        DateTime date = DateTime.now().subtract(Duration(days: j));
+        Stat stat = Stat(
+          tracker_id: trackers[i].id!,
+          year: date.year,
+          month: date.month,
+          day: date.day,
+          value: randGenerator.nextInt(10).toDouble(),
+        );
+        await db.createStat(stat);
+      }
+    }
+    notifyListeners();
+  }
+
+  void testUnockingTrackers() async {
+    await db.unlockAllTrackers();
+
+    checkDatabase();
+
+    importTrackers();
+    notifyListeners();
+  }
+
+  void changeTodayTimeBackwards() async {
+    String dayBeforeYesterday =
+        DateTime.now().subtract(Duration(days: 2)).toIso8601String();
+
+    checkDatabase();
+
+    print(dayBeforeYesterday);
+    await db.resetTime(dayBeforeYesterday);
+  }
+
+  void checkDatabase() async {
+    print(await db.readTrackers());
+    print(await db.checkSavedDay());
   }
 }

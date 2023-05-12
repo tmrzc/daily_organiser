@@ -7,9 +7,9 @@ class TodoTable {
     isDone,
   ];
 
-  static final String id = 'id_todo';
-  static final String value_todo = 'value_todo';
-  static final String isDone = 'isDone';
+  static const String id = 'id_todo';
+  static const String value_todo = 'value_todo';
+  static const String isDone = 'isDone';
 }
 
 class Todo {
