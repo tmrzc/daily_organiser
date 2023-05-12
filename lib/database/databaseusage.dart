@@ -14,13 +14,16 @@ class OrganiserDatabase {
   Future<Database> get database async {
     if (_database != null) return _database!;
 
-    _database = await _initDB('database.db');
+    _database = await _initDB('database1.db');
     return _database!;
   }
+
+  //late String path1;
 
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
+    //path1 = path;
 
     return await openDatabase(path, version: 1, onCreate: _createDB);
   }
@@ -70,12 +73,17 @@ class OrganiserDatabase {
     )''');
   }
 
+  Future<void> deleteDatabase(String path) =>
+      databaseFactory.deleteDatabase(path);
+
 // ------ TODO DATABASE ------
 
   Future<Todo> createTodo(Todo todo) async {
     final db = await instance.database;
 
     final id = await db.insert(tableTodo, todo.toJson());
+    //await db.close();
+    //await deleteDatabase(path1);
 
     return todo.copy(id: id);
   }
