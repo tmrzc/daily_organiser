@@ -51,13 +51,13 @@ class _trackerCardListItem extends State<trackerCardListItem> {
     var trackerInfo = widget.trackerInfo;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
+      padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
       child: Card(
         color: trackerColors[trackerInfo.color]['theme'],
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
               child: Row(
                 children: [
                   Expanded(
@@ -65,7 +65,7 @@ class _trackerCardListItem extends State<trackerCardListItem> {
                       trackerInfo.name,
                       style: GoogleFonts.poppins(
                         fontSize: 30,
-                        fontWeight: FontWeight.w400,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
@@ -145,11 +145,10 @@ class _trackerCardListItem extends State<trackerCardListItem> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(0, 20, 20, 10),
+              padding: const EdgeInsets.fromLTRB(0, 10, 20, 10),
               child: typeDependantOptions(
-                stringConvertertoType(trackerInfo.type),
-                trackerInfo.isLocked,
                 widget.isPreview,
+                trackerInfo,
               ),
             ),
           ],
@@ -159,31 +158,34 @@ class _trackerCardListItem extends State<trackerCardListItem> {
   }
 
   // ------ MENU SWITCHER FOR DIFFERENT TYPES OF TRACEKRS ------
-  Widget typeDependantOptions(TrackerType type, bool isLocked, bool isPreview) {
+  Widget typeDependantOptions(bool isPreview, Tracker tracker) {
     var appState = context.watch<MyAppState>();
 
-    Row selectorRowTracker(Widget option) {
+    Row selectorRowTracker(Widget option, bool enableSubmitButton) {
       return Row(
         children: [
           Expanded(child: option),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
-            child: isPreview
-                ? const Icon(Icons.check)
-                : IconButton(
-                    icon: const Icon(Icons.check),
-                    onPressed: () {
-                      setState(() {
-                        appState.saveValueToTracker(widget.trackerInfo, rating);
-                      });
-                    },
-                  ),
-          ),
+          enableSubmitButton
+              ? Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
+                  child: isPreview
+                      ? const Icon(Icons.check)
+                      : IconButton(
+                          icon: const Icon(Icons.check),
+                          onPressed: () {
+                            setState(() {
+                              appState.saveValueToTracker(
+                                  widget.trackerInfo, rating);
+                            });
+                          },
+                        ),
+                )
+              : SizedBox()
         ],
       );
     }
 
-    if (isLocked) {
+    if (tracker.isLocked) {
       return Row(
         children: [
           Expanded(child: disabledTracker()),
@@ -202,15 +204,15 @@ class _trackerCardListItem extends State<trackerCardListItem> {
       );
     }
 
-    switch (type) {
+    switch (stringConvertertoType(tracker.type)) {
       case TrackerType.score:
-        return selectorRowTracker(sliderOption());
+        return selectorRowTracker(sliderOption(tracker), false);
       case TrackerType.stars:
-        return selectorRowTracker(starsOption());
+        return selectorRowTracker(starsOption(tracker), false);
       case TrackerType.counter:
-        return selectorRowTracker(counterOption());
-      case TrackerType.hours:
-        return selectorRowTracker(timeOption());
+        return selectorRowTracker(counterOption(), true);
+      //case TrackerType.hours:
+      //  return selectorRowTracker(timeOption());
       default:
         return const Text('ERROR: trackerpopup.dart typeDependantOptions()');
     }
@@ -224,7 +226,7 @@ class _trackerCardListItem extends State<trackerCardListItem> {
   }
 
   // ------ TYPES OF TRACKERS TO SELECT FROM -------
-  Padding sliderOption() {
+  Padding sliderOption(Tracker tracker) {
     var appState = context.watch<MyAppState>();
 
     return Padding(
@@ -237,17 +239,21 @@ class _trackerCardListItem extends State<trackerCardListItem> {
           child: Column(
             children: [
               Slider(
+                onChangeEnd: (double newValue) {
+                  Timer(Duration(milliseconds: 200), () {
+                    appState.saveValueToTracker(tracker, rating);
+                  });
+                },
                 value: rating,
-                divisions: 10,
+                divisions: tracker.range,
                 min: 0,
-                max: 10,
-                label: '$rating',
+                max: tracker.range.toDouble(),
+                label: '${rating.round()}',
                 onChanged: (newRating) {
                   setState(() {
                     rating = newRating;
                     //appState.saveValueToTracker(widget.trackerInfo, rating);
                   });
-                  print(appState.trackers);
                 },
               ),
             ],
@@ -257,7 +263,7 @@ class _trackerCardListItem extends State<trackerCardListItem> {
     );
   }
 
-  Padding starsOption() {
+  Padding starsOption(Tracker tracker) {
     var appState = context.watch<MyAppState>();
 
     return Padding(
@@ -274,19 +280,25 @@ class _trackerCardListItem extends State<trackerCardListItem> {
               initialRating: rating,
               itemCount: 5,
               itemSize: 36,
+              itemPadding: EdgeInsets.fromLTRB(6, 0, 6, 0),
               ratingWidget: RatingWidget(
-                  full: Icon(
+                  full: const Icon(
                     Icons.star,
                     color: Colors.amber,
                   ),
-                  empty: Icon(
+                  empty: const Icon(
                     Icons.star,
                     color: Colors.grey,
                   ),
-                  half: Icon(Icons.star_half)),
+                  half: const Icon(
+                    Icons.star_half,
+                    color: Colors.amber,
+                  )),
               onRatingUpdate: (value) {
                 rating = value;
-                print(appState.trackers);
+                Timer(Duration(milliseconds: 200), () {
+                  appState.saveValueToTracker(tracker, rating);
+                });
               },
             ),
           ),

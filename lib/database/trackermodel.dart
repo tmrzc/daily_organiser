@@ -86,7 +86,35 @@ class Tracker {
         TrackerTable.value: value,
         TrackerTable.stats_id: stats_id,
       };
+
+  TrackerType stringConvertertoType(String typeString) {
+    switch (typeString) {
+      case 'score':
+        return TrackerType.score;
+      case 'stars':
+        return TrackerType.stars;
+      case 'counter':
+        return TrackerType.counter;
+      default:
+        return TrackerType.score;
+    }
+  }
+
+  String typeConverterToString(TrackerType typeToConvert) {
+    switch (typeToConvert) {
+      case TrackerType.score:
+        return 'score';
+      case TrackerType.stars:
+        return 'stars';
+      case TrackerType.counter:
+        return 'counter';
+      default:
+        return 'ERROR CONVERTING TOJSON';
+    }
+  }
 }
+
+//static Tracker typeToString(Tracker tracker) => Tracker(name: name, type: type, color: color, range: range, isLocked: isLocked,);
 
 TrackerType stringConvertertoType(String typeString) {
   switch (typeString) {

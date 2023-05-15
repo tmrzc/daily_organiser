@@ -87,6 +87,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
                   slivers: <Widget>[
                     TodoTopBar(context),
                     SliverFillRemaining(
+                      hasScrollBody: false,
                       child: Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -122,7 +123,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
                         : tasksLists(_TodoList, appState, _doneList, false),
 
                     _doneList.isEmpty
-                        ? SliverToBoxAdapter()
+                        ? const SliverToBoxAdapter()
                         : dividerWithButton(appState, _doneList),
 
                     // DONE TASKS PART OF THE LIST
@@ -141,12 +142,12 @@ class _TodoListScreenState extends State<TodoListScreen> {
     return SliverAppBar.medium(
       pinned: true,
       actions: [
-        IconButton(
+        /*IconButton(
           onPressed: () {
             appState.changeTodayTimeBackwards();
           },
           icon: Icon(Icons.calendar_today),
-        ),
+        ),*/
         IconButton(
           onPressed: () {
             Navigator.push(
@@ -163,12 +164,15 @@ class _TodoListScreenState extends State<TodoListScreen> {
       ],
       flexibleSpace: FlexibleSpaceBar(
         centerTitle: false,
-        title: Text(
-          "To do:",
-          style: GoogleFonts.poppins(
-            fontSize: 30,
-            fontWeight: FontWeight.w400,
-            color: widget.theme.colorScheme.onBackground,
+        title: Transform(
+          transform: Matrix4.translationValues(-30.0, 0.0, 0.0),
+          child: Text(
+            "TO DO:",
+            style: GoogleFonts.poppins(
+              fontSize: 30,
+              fontWeight: FontWeight.w600,
+              color: widget.theme.colorScheme.onBackground,
+            ),
           ),
         ),
         background: Container(color: widget.theme.colorScheme.background),

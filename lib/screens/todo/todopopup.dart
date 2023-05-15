@@ -29,7 +29,7 @@ class _TodoPopup extends State<TodoPopup> {
           'Create a new to do',
           style: GoogleFonts.poppins(
             fontSize: 20,
-            fontWeight: FontWeight.w400,
+            fontWeight: FontWeight.w600,
           ),
         ),
         centerTitle: true,

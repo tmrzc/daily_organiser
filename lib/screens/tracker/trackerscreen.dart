@@ -60,7 +60,7 @@ class _TrackerScreenState extends State<TrackerScreen> {
       SliverAppBar.medium(
         pinned: true,
         actions: [
-          IconButton(
+          /*IconButton(
             onPressed: () {
               appState.checkDatabase();
             },
@@ -77,7 +77,7 @@ class _TrackerScreenState extends State<TrackerScreen> {
               appState.changeTodayTimeBackwards();
             },
             icon: Icon(Icons.calendar_today),
-          ),
+          ),*/
           IconButton(
             onPressed: () {
               Navigator.push(
@@ -94,12 +94,15 @@ class _TrackerScreenState extends State<TrackerScreen> {
         ],
         flexibleSpace: FlexibleSpaceBar(
           centerTitle: false,
-          title: Text(
-            "Trackers:",
-            style: GoogleFonts.poppins(
-              fontSize: 30,
-              fontWeight: FontWeight.w400,
-              color: widget.theme.colorScheme.onBackground,
+          title: Transform(
+            transform: Matrix4.translationValues(-30.0, 0.0, 0.0),
+            child: Text(
+              "TRACKERS:",
+              style: GoogleFonts.poppins(
+                fontSize: 30,
+                fontWeight: FontWeight.w600,
+                color: widget.theme.colorScheme.onBackground,
+              ),
             ),
           ),
           background: Container(color: widget.theme.colorScheme.background),
@@ -114,11 +117,11 @@ class _TrackerScreenState extends State<TrackerScreen> {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(15, 10, 15, 10),
                 child: ElevatedButton(
-                  onPressed: () => appState.addTodo('title'),
+                  onPressed: () {},
                   child: Text(
-                    "Add today's journal entry...",
+                    "ADD TODAY'S JOURNAL ENTRY...",
                     style: GoogleFonts.poppins(
-                      fontSize: 20,
+                      fontSize: 18,
                       fontWeight: FontWeight.w400,
                       color: widget.theme.colorScheme.onBackground,
                     ),

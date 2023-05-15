@@ -88,15 +88,15 @@ class _MyHomePageState extends State<MyHomePage> {
         destinations: const <Widget>[
           NavigationDestination(
             icon: Icon(Icons.checklist),
-            label: 'To do',
+            label: 'TO DO',
           ),
           NavigationDestination(
             icon: Icon(Icons.note_alt),
-            label: 'Tracker',
+            label: 'TRACKERS',
           ),
           NavigationDestination(
             icon: Icon(Icons.line_axis_outlined),
-            label: 'Stats',
+            label: 'STATS',
           ),
         ],
       ),

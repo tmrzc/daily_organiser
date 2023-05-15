@@ -1,5 +1,6 @@
 import 'package:daily_organiser/database/trackermodel.dart';
 import 'package:daily_organiser/screens/stats/bar_graph/bar_graph.dart';
+import 'package:daily_organiser/screens/stats/statspopup.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -8,6 +9,7 @@ import '../../main.dart';
 import '../../../provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:daily_organiser/screens/tracker/trackerscreen.dart';
+import 'package:daily_organiser/screens/stats/statspopup.dart';
 
 // ------ STATISTICS LIST SCREEN DISPLAYING THE LIST ------
 
@@ -43,12 +45,15 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         ],
         flexibleSpace: FlexibleSpaceBar(
           centerTitle: false,
-          title: Text(
-            "Statistics:",
-            style: GoogleFonts.poppins(
-              fontSize: 30,
-              fontWeight: FontWeight.w400,
-              color: widget.theme.colorScheme.onBackground,
+          title: Transform(
+            transform: Matrix4.translationValues(-30.0, 0.0, 0.0),
+            child: Text(
+              "STATISTICS:",
+              style: GoogleFonts.poppins(
+                fontSize: 30,
+                fontWeight: FontWeight.w600,
+                color: widget.theme.colorScheme.onBackground,
+              ),
             ),
           ),
           background: Container(color: widget.theme.colorScheme.background),
@@ -75,27 +80,63 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
   Padding statsCard(List<Tracker> trackers, int index) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
+      padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
       child: Card(
         color: trackerColors[trackers[index].color]['theme'],
-        child: Column(
-          children: [
-            Text(
-              trackers[index].name,
-              style: GoogleFonts.poppins(
-                fontSize: 30,
-                fontWeight: FontWeight.w400,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        trackers[index].name,
+                        style: GoogleFonts.poppins(
+                          fontSize: 30,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => StatsPopup(
+                                theme: widget.theme,
+                                trackerInfo: trackers[index],
+                              ),
+                            ));
+                      },
+                      child: Text(
+                        'SEE MORE',
+                        style: TextStyle(color: Colors.black),
+                      ),
+                    )
+                  ],
+                ),
               ),
-            ),
-            SizedBox(
-              height: 150,
-              child: MyBarGraph(
-                tracker_id: trackers[index].id!,
-                theme: widget.theme,
-                color_id: trackers[index].color,
+              SizedBox(height: 10),
+              SizedBox(
+                height: 100,
+                child: MyBarGraph(
+                  tracker: trackers[index],
+                  theme: widget.theme,
+                ),
               ),
-            ),
-          ],
+              SizedBox(height: 10),
+              Text(
+                "LAST WEEK'S STATISTICS",
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

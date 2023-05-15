@@ -1,26 +1,26 @@
-import 'package:daily_organiser/database/databaseusage.dart';
-import 'package:daily_organiser/database/statsmodel.dart';
-import 'package:daily_organiser/provider.dart';
-import 'package:daily_organiser/screens/stats/bar_graph/bar_data.dart';
-import 'package:daily_organiser/screens/tracker/trackerscreen.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:daily_organiser/database/trackermodel.dart';
+import 'package:daily_organiser/database/databaseusage.dart';
+import 'package:daily_organiser/database/statsmodel.dart';
+import 'package:daily_organiser/provider.dart';
+import 'package:daily_organiser/screens/stats/bar_graph/bar_data.dart';
+import 'package:daily_organiser/screens/tracker/trackerscreen.dart';
+
 class MyBarGraph extends StatefulWidget {
   //final List lastWeekStats;
-  final int tracker_id;
+  final Tracker tracker;
   BarData? myBarData;
   final ThemeData theme;
-  final int color_id;
 
   MyBarGraph({
     super.key,
-    required this.tracker_id,
+    required this.tracker,
     this.myBarData,
     required this.theme,
-    required this.color_id,
     //required this.lastWeekStats,
   });
 
@@ -31,11 +31,16 @@ class MyBarGraph extends StatefulWidget {
 class _MyBarGraphState extends State<MyBarGraph> {
   bool isLoading = false;
   late List<Stat> lastXDayData;
+  late double maxCounterValue;
 
   @override
   void initState() {
     super.initState();
     importXDayStats(7);
+    if (widget.tracker.stringConvertertoType(widget.tracker.type) ==
+        TrackerType.counter) {
+      checkHighestCounterValue(widget.tracker);
+    }
   }
 
   @override
@@ -45,11 +50,82 @@ class _MyBarGraphState extends State<MyBarGraph> {
     importXDayStats(7);
   }
 
+  Future checkHighestCounterValue(Tracker tracker) async {
+    setState(() => isLoading = true);
+
+    maxCounterValue =
+        await OrganiserDatabase.instance.returnHighestValue(tracker.id!);
+
+    setState(() => isLoading = false);
+  }
+
+  bool isCounterType(Tracker tracker) {
+    TrackerType type = tracker.stringConvertertoType(tracker.type);
+    return type == TrackerType.counter ? true : false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
+
+    return isLoading
+        ? Center(child: CircularProgressIndicator())
+        : BarChart(
+            BarChartData(
+                maxY: isCounterType(widget.tracker)
+                    ? maxCounterValue
+                    : widget.tracker.range.toDouble(),
+                minY: 0,
+                gridData: FlGridData(show: false),
+                borderData: FlBorderData(show: false),
+                titlesData: FlTitlesData(
+                  show: true,
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  rightTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  topTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: getBottomTitles,
+                    ),
+                  ),
+                ),
+                barGroups: widget.myBarData?.barData
+                    .map((data) => BarChartGroupData(
+                          x: data.x,
+                          barRods: [
+                            BarChartRodData(
+                                toY: data.y,
+                                color: trackerColors[widget.tracker.color]
+                                    ['theme'],
+                                width: 25,
+                                borderRadius:
+                                    BorderRadius.all(Radius.elliptical(10, 5)),
+                                backDrawRodData: BackgroundBarChartRodData(
+                                  show: true,
+                                  toY: isCounterType(widget.tracker)
+                                      ? maxCounterValue
+                                      : widget.tracker.range.toDouble(),
+                                  color: widget.theme.canvasColor,
+                                ),
+                                borderSide: BorderSide(color: Colors.black))
+                          ],
+                        ))
+                    .toList()),
+          );
+  }
+
   Future importXDayStats(int howManyDays) async {
     setState(() => isLoading = true);
 
     lastXDayData = await OrganiserDatabase.instance
-        .importLastXDays(widget.tracker_id, howManyDays);
+        .importLastXDays(widget.tracker.id!, howManyDays);
 
     widget.myBarData = BarData(
       amount0: lastXDayData[6].value,
@@ -79,25 +155,25 @@ class _MyBarGraphState extends State<MyBarGraph> {
 
       switch (date.weekday) {
         case 1:
-          finalString = 'Mon';
+          finalString = 'MON';
           break;
         case 2:
-          finalString = 'Tue';
+          finalString = 'TUE';
           break;
         case 3:
-          finalString = 'Wed';
+          finalString = 'WED';
           break;
         case 4:
-          finalString = 'Thu';
+          finalString = 'THU';
           break;
         case 5:
-          finalString = 'Fr';
+          finalString = 'FR';
           break;
         case 6:
-          finalString = 'Sat';
+          finalString = 'SAT';
           break;
         case 7:
-          finalString = 'Sun';
+          finalString = 'SUN';
           break;
         default:
           finalString = 'ERROR whatDayOfTheWeek';
@@ -195,57 +271,5 @@ class _MyBarGraphState extends State<MyBarGraph> {
         text = const Text('ERROR GETBOTTOMTITLES');
     }
     return text;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    var appState = context.watch<MyAppState>();
-
-    return isLoading
-        ? Center(child: CircularProgressIndicator())
-        : BarChart(
-            BarChartData(
-                maxY: 10,
-                minY: 0,
-                gridData: FlGridData(show: false),
-                borderData: FlBorderData(show: false),
-                titlesData: FlTitlesData(
-                  show: true,
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  rightTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  topTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      getTitlesWidget: getBottomTitles,
-                    ),
-                  ),
-                ),
-                barGroups: widget.myBarData?.barData
-                    .map((data) => BarChartGroupData(
-                          x: data.x,
-                          barRods: [
-                            BarChartRodData(
-                                toY: data.y,
-                                color: trackerColors[widget.color_id]['theme'],
-                                width: 25,
-                                borderRadius:
-                                    BorderRadius.all(Radius.elliptical(10, 5)),
-                                backDrawRodData: BackgroundBarChartRodData(
-                                  show: true,
-                                  toY: 10,
-                                  color: widget.theme.canvasColor,
-                                ),
-                                borderSide: BorderSide(color: Colors.black))
-                          ],
-                        ))
-                    .toList()),
-          );
   }
 }

@@ -268,6 +268,20 @@ class OrganiserDatabase {
     return listOfXDays;
   }
 
+  Future<double> returnHighestValue(int tracker_id) async {
+    final db = await instance.database;
+
+    List<Map<String, Object?>> listOfMaps = await db.query(
+      tableStats,
+      where: '${TrackerStats.tracker_id} = ?',
+      whereArgs: [tracker_id],
+      orderBy: '${TrackerStats.value_stats}',
+      limit: 1,
+    );
+
+    return listOfMaps.map((json) => Stat.fromJson(json)).toList()[0].value;
+  }
+
   Future close() async {
     final db = await instance.database;
 

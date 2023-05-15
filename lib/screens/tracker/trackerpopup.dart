@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../../main.dart';
 import '../../provider.dart';
 import 'trackercard.dart';
@@ -26,6 +27,7 @@ class _TrackerPopup extends State<TrackerPopup> {
   // TEXTEDITINGCONTROLLERS FOR TRACKER CREATOR INPUT FIELDS
   final _titlecontroller = TextEditingController();
   final counterController = TextEditingController();
+  final _rangeController = TextEditingController();
 
   // KEY FOR VALIDATION OF THE FORM
   final formKey = GlobalKey<FormState>();
@@ -45,7 +47,9 @@ class _TrackerPopup extends State<TrackerPopup> {
 
     counterController.text = '0';
     _titlecontroller.text = 'Title...';
+    _rangeController.text = '10';
     _titlecontroller.addListener(textChanger);
+    _rangeController.addListener(rangeChanger);
     counterController.addListener(counterChanger);
   }
 
@@ -53,6 +57,13 @@ class _TrackerPopup extends State<TrackerPopup> {
   void textChanger() {
     setState(() {
       var temp = _titlecontroller.text;
+    });
+  }
+
+  // AUTO UPDATING RANGE FOR SCORE TYPE
+  void rangeChanger() {
+    setState(() {
+      var temp = _rangeController.text;
     });
   }
 
@@ -75,7 +86,7 @@ class _TrackerPopup extends State<TrackerPopup> {
           'Create a new tracker',
           style: GoogleFonts.poppins(
             fontSize: 20,
-            fontWeight: FontWeight.w400,
+            fontWeight: FontWeight.w600,
           ),
         ),
         centerTitle: true,
@@ -154,29 +165,78 @@ class _TrackerPopup extends State<TrackerPopup> {
 
                 choosingType(),
 
+                trackerView != TrackerType.score
+                    ? SizedBox()
+                    : HeaderText(widget: widget, header: 'Range'),
+
+                trackerView != TrackerType.score
+                    ? SizedBox()
+                    : TextFormField(
+                        keyboardType: TextInputType.number,
+                        textCapitalization: TextCapitalization.sentences,
+                        controller: _rangeController,
+                        onTap: () => _rangeController.clear(),
+                        validator: (String? value) {
+                          return (int.tryParse(value!) == null && value != null)
+                              ? 'Please enter a number or leave empty'
+                              : null;
+                        },
+                        decoration: InputDecoration(
+                            border: const OutlineInputBorder(),
+                            labelText: 'Maximum range for a slider',
+                            suffixIcon: IconButton(
+                              onPressed: () => _rangeController.clear(),
+                              icon: const Icon(Icons.clear),
+                            )),
+                      ),
+
                 // SUBMIT BUTTON FOR SUBMITING NEW TO DO
-                const SizedBox(
-                  height: 20,
-                ),
+                const SizedBox(height: 20),
+
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                      minimumSize: Size.fromHeight(50)),
                   onPressed: () {
                     final isValidForm = formKey.currentState!.validate();
 
                     if (isValidForm) {
                       appState.addTracker(
-                          _titlecontroller.text, trackerView, _value ?? 0);
+                        _titlecontroller.text,
+                        trackerView,
+                        _value ?? 0,
+                        (trackerView == TrackerType.score)
+                            ? stringToInt(_rangeController)
+                            : (trackerView == TrackerType.stars)
+                                ? 5
+                                : 10,
+                      );
                       _titlecontroller.clear();
                       Navigator.of(context).pop();
                     }
                   },
-                  child: const Text('Submit'),
+                  child: const Text(
+                    'SUBMIT',
+                    style: TextStyle(letterSpacing: 2),
+                  ),
                 ),
+                SizedBox(height: 10)
               ],
             ),
           ),
         ),
       ),
     );
+  }
+
+  int stringToInt(TextEditingController controllerExample) {
+    int? rangeValue = int.tryParse(controllerExample.text);
+    int defaultValue = 10;
+
+    if (rangeValue != null) {
+      return rangeValue;
+    } else {
+      return defaultValue;
+    }
   }
 
   // PANEL FOR CHOOSING TYPE OF CREATED TRACKER
@@ -216,13 +276,13 @@ class _TrackerPopup extends State<TrackerPopup> {
 
 // ------ DIVIDER WITH TEXT CLASS ------
 class HeaderText extends StatelessWidget {
-  const HeaderText({
+  HeaderText({
     super.key,
     required this.widget,
     required this.header,
   });
 
-  final TrackerPopup widget;
+  var widget;
   final String header;
 
   @override
