@@ -279,7 +279,9 @@ class OrganiserDatabase {
       limit: 1,
     );
 
-    return listOfMaps.map((json) => Stat.fromJson(json)).toList()[0].value;
+    return listOfMaps.isEmpty
+        ? 10
+        : listOfMaps.map((json) => Stat.fromJson(json)).toList()[0].value;
   }
 
   Future close() async {

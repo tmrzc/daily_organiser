@@ -37,10 +37,7 @@ class _MyBarGraphState extends State<MyBarGraph> {
   void initState() {
     super.initState();
     importXDayStats(7);
-    if (widget.tracker.stringConvertertoType(widget.tracker.type) ==
-        TrackerType.counter) {
-      checkHighestCounterValue(widget.tracker);
-    }
+    maxCounterValue = 10;
   }
 
   @override
@@ -48,6 +45,10 @@ class _MyBarGraphState extends State<MyBarGraph> {
     // TODO: implement didChangeDependencies
     super.didChangeDependencies();
     importXDayStats(7);
+    if (widget.tracker.stringConvertertoType(widget.tracker.type) ==
+        TrackerType.counter) {
+      checkHighestCounterValue(widget.tracker);
+    }
   }
 
   Future checkHighestCounterValue(Tracker tracker) async {
@@ -67,6 +68,10 @@ class _MyBarGraphState extends State<MyBarGraph> {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
+
+    if (maxCounterValue < 10) {
+      maxCounterValue = 10;
+    }
 
     return isLoading
         ? Center(child: CircularProgressIndicator())

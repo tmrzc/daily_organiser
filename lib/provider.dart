@@ -143,7 +143,7 @@ class MyAppState extends ChangeNotifier {
   // ------ TESTING ------
   void fillUpTrackersStats(int howManyDaysToFabricate) async {
     for (int i = 0; i < trackers.length; i++) {
-      for (int j = 0; j < howManyDaysToFabricate; j++) {
+      for (int j = 1; j < howManyDaysToFabricate; j++) {
         var randGenerator = Random();
         DateTime date = DateTime.now().subtract(Duration(days: j));
         Stat stat = Stat(
