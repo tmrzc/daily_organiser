@@ -334,6 +334,11 @@ class _trackerCardListItem extends State<trackerCardListItem> {
                   child: Center(
                     child: TextField(
                       textAlign: TextAlign.center,
+                      onChanged: (value) {
+                        setState(() {
+                          rating = double.tryParse(counterController.text) ?? 0;
+                        });
+                      },
                       onSubmitted: (value) {
                         setState(() {
                           counterController.text =
