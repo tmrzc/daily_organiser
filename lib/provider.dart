@@ -141,9 +141,9 @@ class MyAppState extends ChangeNotifier {
   // ------ STATS ------
 
   // ------ TESTING ------
-  void fillUpTrackersStats(int howManyDaysToFabricate) async {
+  void fillUpTrackersStats(int howManyDaysToFabricate, int range) async {
     for (int i = 0; i < trackers.length; i++) {
-      for (int j = 1; j < howManyDaysToFabricate; j++) {
+      for (int j = 1; j < howManyDaysToFabricate; j += 1) {
         var randGenerator = Random();
         DateTime date = DateTime.now().subtract(Duration(days: j));
         Stat stat = Stat(
@@ -151,7 +151,7 @@ class MyAppState extends ChangeNotifier {
           year: date.year,
           month: date.month,
           day: date.day,
-          value: randGenerator.nextInt(10).toDouble(),
+          value: randGenerator.nextInt(range).toDouble(),
         );
         await db.createStat(stat);
       }

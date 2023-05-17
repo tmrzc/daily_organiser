@@ -14,7 +14,7 @@ class OrganiserDatabase {
   Future<Database> get database async {
     if (_database != null) return _database!;
 
-    _database = await _initDB('database1.db');
+    _database = await _initDB('database.db');
     return _database!;
   }
 
@@ -25,7 +25,8 @@ class OrganiserDatabase {
     final path = join(dbPath, filePath);
     //path1 = path;
 
-    return await openDatabase(path, version: 1, onCreate: _createDB);
+    return await openDatabase(path,
+        version: 4, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   Future _createDB(Database db, int version) async {
@@ -71,6 +72,58 @@ class OrganiserDatabase {
       ${TrackerStats.date_day} $integerType,
       ${TrackerStats.value_stats} $doubleType
     )''');
+  }
+
+  Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    const idType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
+    const textType = 'TEXT NOT NULL';
+    const doubleType = 'DOUBLE NOT NULL';
+    const integerType = 'INTEGER NOT NULL';
+    const boolType = 'BOOLEAN NOT NULL';
+    const doubleTypeNULLABLE = 'DOUBLE';
+    const integerTypeNULLABLE = 'INTEGER';
+
+    if (oldVersion < newVersion) {
+      await db.execute('DROP TABLE $tableTodo');
+      await db.execute('DROP TABLE $tableTracker');
+      await db.execute('DROP TABLE $tableStats');
+      await db.execute('DROP TABLE currentTime');
+
+      await db.execute('''
+    CREATE TABLE currentTime (
+      current_time $textType
+    ) 
+    ''');
+
+      await db.execute('''
+    CREATE TABLE $tableTodo (
+      ${TodoTable.id} $idType,
+      ${TodoTable.value_todo} $textType,
+      ${TodoTable.isDone} $boolType
+    )''');
+
+      await db.execute('''
+    CREATE TABLE $tableTracker (
+      ${TrackerTable.id_tracker} $idType,
+      ${TrackerTable.name_tracker} $textType,
+      ${TrackerTable.type_tracker} $textType,
+      ${TrackerTable.color_id} $integerType,
+      ${TrackerTable.range_tracker} $integerType,
+      ${TrackerTable.isLocked} $boolType,
+      ${TrackerTable.value} $doubleTypeNULLABLE,
+      ${TrackerTable.stats_id} $integerTypeNULLABLE
+    )''');
+
+      await db.execute('''
+    CREATE TABLE $tableStats (
+      ${TrackerStats.id_stats} $idType,
+      ${TrackerStats.tracker_id} $integerType,
+      ${TrackerStats.date_year} $integerType,
+      ${TrackerStats.date_month} $integerType,
+      ${TrackerStats.date_day} $integerType,
+      ${TrackerStats.value_stats} $doubleType
+    )''');
+    }
   }
 
   Future<void> deleteDatabase(String path) =>
@@ -221,6 +274,13 @@ class OrganiserDatabase {
     );
   }
 
+  Future<int> updateStat(Stat stat) async {
+    final db = await instance.database;
+
+    return db.update(tableStats, stat.toJson(),
+        where: '${TrackerStats.id_stats} = ?', whereArgs: [stat.id]);
+  }
+
   Future<int> clearAfterDeletingTracker(int tracker_id) async {
     final db = await instance.database;
 
@@ -229,6 +289,15 @@ class OrganiserDatabase {
       where: '${TrackerStats.tracker_id} = ?',
       whereArgs: [tracker_id],
     );
+  }
+
+  Future<List<Stat>> readStats(int tracker_id) async {
+    final db = await instance.database;
+
+    final listOfMaps = await db.query(tableStats,
+        where: '${TrackerStats.tracker_id} = ?', whereArgs: [tracker_id]);
+
+    return listOfMaps.map((json) => Stat.fromJson(json)).toList();
   }
 
   Future<List<Stat>> importLastXDays(int tracker_id, int howManyDays) async {
@@ -258,7 +327,7 @@ class OrganiserDatabase {
               year: date.year,
               month: date.month,
               day: date.day,
-              value: 0,
+              value: -1,
             )
           : listOfMaps.map((json) => Stat.fromJson(json)).toList()[0];
 

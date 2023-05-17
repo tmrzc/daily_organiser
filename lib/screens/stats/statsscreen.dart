@@ -38,7 +38,13 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         actions: [
           IconButton(
             onPressed: () {
-              appState.fillUpTrackersStats(30);
+              appState.fillUpTrackersStats(30, 100);
+            },
+            icon: Icon(Icons.smoking_rooms_rounded),
+          ),
+          IconButton(
+            onPressed: () {
+              appState.fillUpTrackersStats(30, 10);
             },
             icon: Icon(Icons.smoke_free),
           )

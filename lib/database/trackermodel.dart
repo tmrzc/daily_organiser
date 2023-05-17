@@ -29,7 +29,7 @@ class Tracker {
   final String name;
   final String type;
   final int color;
-  final int range;
+  int range;
   bool isLocked;
   double? value;
   int? stats_id;

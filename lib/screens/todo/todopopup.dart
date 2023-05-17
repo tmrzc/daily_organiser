@@ -39,13 +39,13 @@ class _TodoPopup extends State<TodoPopup> {
       body: Form(
         autovalidateMode: AutovalidateMode.onUserInteraction,
         key: formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            const SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-              child: TextFormField(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              const SizedBox(height: 20),
+              TextFormField(
                 autofocus: true,
                 textCapitalization: TextCapitalization.sentences,
                 controller: _titlecontroller,
@@ -62,22 +62,24 @@ class _TodoPopup extends State<TodoPopup> {
                       icon: const Icon(Icons.clear),
                     )),
               ),
-            ),
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-            // SUBMIT BUTTON FOR SUBMITING NEW TO DO
-            ElevatedButton(
-              onPressed: () {
-                final isValidForm = formKey.currentState!.validate();
+              // SUBMIT BUTTON FOR SUBMITING NEW TO DO
+              ElevatedButton(
+                style:
+                    ElevatedButton.styleFrom(minimumSize: Size.fromHeight(50)),
+                onPressed: () {
+                  final isValidForm = formKey.currentState!.validate();
 
-                if (isValidForm) {
-                  appState.addTodo(_titlecontroller.text);
-                  Navigator.of(context).pop();
-                }
-              },
-              child: const Text('Submit'),
-            ),
-          ],
+                  if (isValidForm) {
+                    appState.addTodo(_titlecontroller.text);
+                    Navigator.of(context).pop();
+                  }
+                },
+                child: const Text('Submit'),
+              ),
+            ],
+          ),
         ),
       ),
     );

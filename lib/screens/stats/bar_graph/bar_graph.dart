@@ -42,27 +42,12 @@ class _MyBarGraphState extends State<MyBarGraph> {
 
   @override
   void didChangeDependencies() {
-    // TODO: implement didChangeDependencies
     super.didChangeDependencies();
     importXDayStats(7);
     if (widget.tracker.stringConvertertoType(widget.tracker.type) ==
         TrackerType.counter) {
       checkHighestCounterValue(widget.tracker);
     }
-  }
-
-  Future checkHighestCounterValue(Tracker tracker) async {
-    setState(() => isLoading = true);
-
-    maxCounterValue =
-        await OrganiserDatabase.instance.returnHighestValue(tracker.id!);
-
-    setState(() => isLoading = false);
-  }
-
-  bool isCounterType(Tracker tracker) {
-    TrackerType type = tracker.stringConvertertoType(tracker.type);
-    return type == TrackerType.counter ? true : false;
   }
 
   @override
@@ -74,7 +59,7 @@ class _MyBarGraphState extends State<MyBarGraph> {
     }
 
     return isLoading
-        ? Center(child: CircularProgressIndicator())
+        ? const Center(child: CircularProgressIndicator())
         : BarChart(
             BarChartData(
                 maxY: isCounterType(widget.tracker)
@@ -106,7 +91,7 @@ class _MyBarGraphState extends State<MyBarGraph> {
                           x: data.x,
                           barRods: [
                             BarChartRodData(
-                                toY: data.y,
+                                toY: data.y > 0 ? data.y.roundToDouble() : 0,
                                 color: trackerColors[widget.tracker.color]
                                     ['theme'],
                                 width: 25,
@@ -124,6 +109,20 @@ class _MyBarGraphState extends State<MyBarGraph> {
                         ))
                     .toList()),
           );
+  }
+
+  Future checkHighestCounterValue(Tracker tracker) async {
+    setState(() => isLoading = true);
+
+    maxCounterValue =
+        await OrganiserDatabase.instance.returnHighestValue(tracker.id!);
+
+    setState(() => isLoading = false);
+  }
+
+  bool isCounterType(Tracker tracker) {
+    TrackerType type = tracker.stringConvertertoType(tracker.type);
+    return type == TrackerType.counter ? true : false;
   }
 
   Future importXDayStats(int howManyDays) async {

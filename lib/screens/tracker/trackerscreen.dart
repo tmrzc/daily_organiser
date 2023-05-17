@@ -6,8 +6,22 @@ import 'trackerpopup.dart';
 import 'trackercard.dart';
 import 'package:daily_organiser/main.dart';
 
+var color = appTheme.primaryColor;
+
+List primaryLighterColorValues = [
+  (color.red + (255 - color.red) * offset).toInt(),
+  (color.green + (255 - color.green) * offset).toInt(),
+  (color.blue + (255 - color.blue) * offset).toInt(),
+];
+
+double offset = 0.75;
+
 List trackerColors = [
-  {'name': 'DEFAULT', 'theme': appTheme.colorScheme.background}, // idx 0
+  {
+    'name': 'DEFAULT',
+    'theme': Color.fromARGB(255, primaryLighterColorValues[0],
+        primaryLighterColorValues[1], primaryLighterColorValues[2]),
+  }, // idx 0
   {'name': 'RED', 'theme': Color.fromARGB(255, 252, 191, 219)}, // idx 1
   {'name': 'BLUE', 'theme': Color.fromARGB(255, 196, 231, 248)}, // idx 2
   {'name': 'MINT', 'theme': const Color.fromARGB(255, 211, 248, 226)}, // idx 3

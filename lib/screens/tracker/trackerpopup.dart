@@ -102,7 +102,7 @@ class _TrackerPopup extends State<TrackerPopup> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                HeaderText(widget: widget, header: 'Tracker preview'),
+                HeaderText(widget: widget, header: 'TRACKER PREVIEW'),
 
                 trackerCardListItem(
                   theme: theme,
@@ -116,7 +116,7 @@ class _TrackerPopup extends State<TrackerPopup> {
                   isPreview: true,
                 ),
 
-                HeaderText(widget: widget, header: 'Title'),
+                HeaderText(widget: widget, header: 'TITLE'),
 
                 TextFormField(
                   textCapitalization: TextCapitalization.sentences,
@@ -136,7 +136,7 @@ class _TrackerPopup extends State<TrackerPopup> {
                       )),
                 ),
 
-                HeaderText(widget: widget, header: 'Color'),
+                HeaderText(widget: widget, header: 'COLOR'),
 
                 Wrap(
                   alignment: WrapAlignment.center,
@@ -161,13 +161,13 @@ class _TrackerPopup extends State<TrackerPopup> {
                   ).toList(),
                 ),
 
-                HeaderText(widget: widget, header: 'Type'),
+                HeaderText(widget: widget, header: 'TYPE'),
 
                 choosingType(),
 
                 trackerView != TrackerType.score
                     ? SizedBox()
-                    : HeaderText(widget: widget, header: 'Range'),
+                    : HeaderText(widget: widget, header: 'RANGE'),
 
                 trackerView != TrackerType.score
                     ? SizedBox()
@@ -190,7 +190,7 @@ class _TrackerPopup extends State<TrackerPopup> {
                             )),
                       ),
 
-                // SUBMIT BUTTON FOR SUBMITING NEW TO DO
+                // SUBMIT BUTTON FOR SUBMITING NEW TRACKER
                 const SizedBox(height: 20),
 
                 ElevatedButton(
