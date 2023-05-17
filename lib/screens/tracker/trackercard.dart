@@ -251,7 +251,7 @@ class _trackerCardListItem extends State<trackerCardListItem> {
                 label: '${rating.round()}',
                 onChanged: (newRating) {
                   setState(() {
-                    rating = newRating;
+                    rating = newRating.roundToDouble();
                     //appState.saveValueToTracker(widget.trackerInfo, rating);
                   });
                 },

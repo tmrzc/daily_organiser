@@ -46,7 +46,7 @@ class _MyChartGraphState extends State<MyChartGraph> {
         : LineChart(
             LineChartData(
               maxY: maxCounterValue2 * 1.3, //widget.tracker.range.toDouble(),
-              minY: 0,
+              minY: -maxCounterValue2 * 0.1,
               titlesData: FlTitlesData(
                   show: true,
                   topTitles:

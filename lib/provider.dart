@@ -151,7 +151,7 @@ class MyAppState extends ChangeNotifier {
           year: date.year,
           month: date.month,
           day: date.day,
-          value: randGenerator.nextInt(range).toDouble(),
+          value: randGenerator.nextInt(trackers[i].range).toDouble(),
         );
         await db.createStat(stat);
       }

@@ -295,7 +295,10 @@ class OrganiserDatabase {
     final db = await instance.database;
 
     final listOfMaps = await db.query(tableStats,
-        where: '${TrackerStats.tracker_id} = ?', whereArgs: [tracker_id]);
+        orderBy:
+            '${TrackerStats.date_year} DESC, ${TrackerStats.date_month} DESC, ${TrackerStats.date_day} DESC',
+        where: '${TrackerStats.tracker_id} = ?',
+        whereArgs: [tracker_id]);
 
     return listOfMaps.map((json) => Stat.fromJson(json)).toList();
   }

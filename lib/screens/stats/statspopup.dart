@@ -77,7 +77,7 @@ class _StatsPopup extends State<StatsPopup> {
                 itemCount: historyList.length,
                 itemBuilder: (context, index) {
                   return ListTile(
-                    title: Text('${historyList[index].value.toInt()}'),
+                    title: Text('${historyList[index].value.round().toInt()}'),
                     subtitle: Text(
                         '${historyList[index].year}/${historyList[index].month}/${historyList[index].day}'),
                     trailing: IconButton(
