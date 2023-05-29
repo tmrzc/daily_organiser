@@ -1,9 +1,6 @@
-import 'package:daily_organiser/database/databaseusage.dart';
-import 'package:daily_organiser/database/todomodel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:async';
 import '../../provider.dart';
 
 // ------ DIALOG DISPLAYED FOR ADDING NEW TO-DO'S ------
@@ -26,7 +23,7 @@ class _TodoPopup extends State<TodoPopup> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Create a new to do',
+          'CREATE A NEW TO DO',
           style: GoogleFonts.poppins(
             fontSize: 20,
             fontWeight: FontWeight.w600,

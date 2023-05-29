@@ -1,4 +1,3 @@
-import 'package:daily_organiser/database/databaseusage.dart';
 import 'package:daily_organiser/database/todomodel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -22,31 +21,7 @@ class TodoListScreen extends StatefulWidget {
 }
 
 class _TodoListScreenState extends State<TodoListScreen> {
-  //late List<Todo> todos = [];
-  //late List<Todo> donetodos = [];
   bool isLoading = false;
-
-  /*@override
-  void initState() {
-    super.initState();
-
-    refreshTodos();
-  }
-
-  /*@override
-  void dispose() {
-    OrganiserDatabase.instance.close();
-
-    super.dispose();
-  }*/
-
-  Future refreshTodos() async {
-    setState(() => isLoading = true);
-
-    Provider.of<MyAppState>(context, listen: false).importTodo();
-
-    setState(() => isLoading = false);
-  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +68,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              "Press the plus icon to add a to-do",
+                              "PRESS THE PLUS ICON TO ADD A TO-DO",
                               style: TextStyle(color: Colors.grey),
                             ),
                           ],
@@ -114,7 +89,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
                               child: Padding(
                                 padding: EdgeInsets.fromLTRB(0, 20, 0, 20),
                                 child: Text(
-                                  "Press the plus icon to add a to-do",
+                                  "PRESS THE PLUS ICON TO ADD A TO-DO",
                                   style: TextStyle(color: Colors.grey),
                                 ),
                               ),
@@ -142,12 +117,6 @@ class _TodoListScreenState extends State<TodoListScreen> {
     return SliverAppBar.medium(
       pinned: true,
       actions: [
-        /*IconButton(
-          onPressed: () {
-            appState.changeTodayTimeBackwards();
-          },
-          icon: Icon(Icons.calendar_today),
-        ),*/
         IconButton(
           onPressed: () {
             Navigator.push(

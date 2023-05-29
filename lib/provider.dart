@@ -4,8 +4,9 @@ import 'database/databaseusage.dart';
 import 'database/todomodel.dart';
 import 'database/trackermodel.dart';
 import 'database/statsmodel.dart';
-import 'package:intl/intl.dart';
+import 'database/notemodel.dart';
 import 'dart:math';
+import 'dart:developer';
 
 // ------ CHANGE NOTIFIER ------
 
@@ -16,6 +17,28 @@ class MyAppState extends ChangeNotifier {
   List<Tracker> trackers = [];
 
   var db = OrganiserDatabase.instance;
+
+  // ------ JOURNAL ------
+
+  void saveNote(String noteContent, DateTime dateTime) async {
+    await db.createNote(Note(
+      year: dateTime.year,
+      month: dateTime.month,
+      day: dateTime.day,
+      note: noteContent,
+    ));
+    notifyListeners();
+  }
+
+  void editNote(Note note) async {
+    await db.updateNote(note);
+    notifyListeners();
+  }
+
+  void deleteNote(Note note) async {
+    await db.deleteNote(note);
+    notifyListeners();
+  }
 
   // ------ TO DO ------
 
@@ -55,10 +78,11 @@ class MyAppState extends ChangeNotifier {
 
   void importTrackers() async {
     trackers = await db.readTrackers();
+    inspect(trackers);
     notifyListeners();
   }
 
-  void addTracker(String title, TrackerType type, int colorId,
+  Future addTracker(String title, TrackerType type, int colorId,
       [int rangeMax = 10]) async {
     var tracker = Tracker(
       name: title,
@@ -67,16 +91,25 @@ class MyAppState extends ChangeNotifier {
       range: rangeMax,
       isLocked: false,
     );
+    inspect(tracker);
     tracker = await db.createTracker(tracker);
-    trackers.add(tracker);
+    updateTracker(tracker);
+    inspect(tracker);
+    trackers.isEmpty ? trackers.add(tracker) : trackers.insert(0, tracker);
 
     notifyListeners();
   }
 
-  void saveValueToTracker(Tracker tracker, double value) async {
+  void saveValueToTracker(Tracker tracker, double value,
+      [int year = 0, int month = 0, int day = 0]) async {
     tracker.value = value;
     tracker.isLocked = true;
     DateTime todaysDate = DateTime.now();
+
+    if (year != 0 && month != 0 && day != 0) {
+      todaysDate = DateTime.utc(year, month, day);
+    }
+
     Stat tracker_stat = Stat(
       tracker_id: tracker.id!,
       year: todaysDate.year,
@@ -89,6 +122,36 @@ class MyAppState extends ChangeNotifier {
 
     await db.updateTracker(tracker);
 
+    notifyListeners();
+  }
+
+  void trackerPrioritySwap(int idx, bool toTop) async {
+    int tempUp = 0;
+    int tempDown = 0;
+    print('$idx $toTop');
+
+    if (toTop == true) {
+      tempUp = trackers[idx - 1].priority!;
+      tempDown = trackers[idx].priority!;
+      print('UP down$tempDown up$tempUp');
+      trackers[idx - 1].priority = tempDown;
+      trackers[idx].priority = tempUp;
+      await db.updateTracker(trackers[idx]);
+      await db.updateTracker(trackers[idx - 1]);
+    } else {
+      tempDown = trackers[idx + 1].priority!;
+      tempUp = trackers[idx].priority!;
+      print('DOWN down$tempDown up$tempUp');
+      trackers[idx + 1].priority = tempUp;
+      trackers[idx].priority = tempDown;
+      await db.updateTracker(trackers[idx]);
+      await db.updateTracker(trackers[idx + 1]);
+    }
+    importTrackers();
+  }
+
+  void updateTracker(Tracker tracker) async {
+    await db.updateTracker(tracker);
     notifyListeners();
   }
 
@@ -140,20 +203,32 @@ class MyAppState extends ChangeNotifier {
 
   // ------ STATS ------
 
+  void createStat(Stat stat) async {
+    await db.createStat(stat);
+    notifyListeners();
+  }
+
+  void updateStat(Stat stat) async {
+    await db.updateStat(stat);
+    notifyListeners();
+  }
+
   // ------ TESTING ------
   void fillUpTrackersStats(int howManyDaysToFabricate, int range) async {
     for (int i = 0; i < trackers.length; i++) {
-      for (int j = 1; j < howManyDaysToFabricate; j += 1) {
-        var randGenerator = Random();
-        DateTime date = DateTime.now().subtract(Duration(days: j));
-        Stat stat = Stat(
-          tracker_id: trackers[i].id!,
-          year: date.year,
-          month: date.month,
-          day: date.day,
-          value: randGenerator.nextInt(trackers[i].range).toDouble(),
-        );
-        await db.createStat(stat);
+      var randGenerator = Random();
+      for (int j = 1; j < howManyDaysToFabricate; j += 10) {
+        for (int k = 0; k < 5; k++) {
+          DateTime date = DateTime.now().subtract(Duration(days: j + k));
+          Stat stat = Stat(
+            tracker_id: trackers[i].id!,
+            year: date.year,
+            month: date.month,
+            day: date.day,
+            value: randGenerator.nextInt(trackers[i].range).toDouble(),
+          );
+          await db.createStat(stat);
+        }
       }
     }
     notifyListeners();

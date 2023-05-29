@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'screens/todo/todoscreen.dart';
 import 'screens/tracker/trackerscreen.dart';
+import 'screens/journal/journalscreen.dart';
 import 'provider.dart';
 
 void main() {
@@ -44,7 +45,6 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   var currentPageIndex = 0;
   late bool isLoading;
-  late bool isLoading2;
   late bool isLoading3;
 
   @override
@@ -52,7 +52,6 @@ class _MyHomePageState extends State<MyHomePage> {
     // TODO: implement initState
     super.initState();
     refreshTodos();
-    refreshTrackers();
   }
 
   Future refreshTodos() async {
@@ -61,14 +60,6 @@ class _MyHomePageState extends State<MyHomePage> {
     Provider.of<MyAppState>(context, listen: false).importTodo();
 
     setState(() => isLoading = false);
-  }
-
-  Future refreshTrackers() async {
-    setState(() => isLoading2 = true);
-
-    Provider.of<MyAppState>(context, listen: false).importTrackers();
-
-    setState(() => isLoading2 = false);
   }
 
   @override
@@ -94,16 +85,21 @@ class _MyHomePageState extends State<MyHomePage> {
             icon: Icon(Icons.note_alt),
             label: 'TRACKERS',
           ),
-          NavigationDestination(
+          /*NavigationDestination(
             icon: Icon(Icons.line_axis_outlined),
             label: 'STATS',
+          ),*/
+          NavigationDestination(
+            icon: Icon(Icons.library_books_outlined),
+            label: 'JOURNAL',
           ),
         ],
       ),
       body: <Widget>[
         TodoListScreen(theme: theme),
         TrackerScreen(theme: theme),
-        StatisticsScreen(theme: theme),
+        //StatisticsScreen(theme: theme),
+        JournalScreen(theme: theme),
       ][currentPageIndex],
     );
   }

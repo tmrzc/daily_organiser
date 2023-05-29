@@ -5,6 +5,7 @@ import '../../provider.dart';
 import 'trackerpopup.dart';
 import 'trackercard.dart';
 import 'package:daily_organiser/main.dart';
+import 'package:daily_organiser/screens/stats/statsscreen.dart';
 
 var color = appTheme.primaryColor;
 
@@ -22,10 +23,13 @@ List trackerColors = [
     'theme': Color.fromARGB(255, primaryLighterColorValues[0],
         primaryLighterColorValues[1], primaryLighterColorValues[2]),
   }, // idx 0
-  {'name': 'RED', 'theme': Color.fromARGB(255, 252, 191, 219)}, // idx 1
+  {'name': 'PINK', 'theme': Color.fromARGB(255, 252, 191, 219)}, // idx 1
   {'name': 'BLUE', 'theme': Color.fromARGB(255, 196, 231, 248)}, // idx 2
   {'name': 'MINT', 'theme': const Color.fromARGB(255, 211, 248, 226)}, // idx 3
-  {'name': 'PINK', 'theme': const Color.fromARGB(255, 228, 193, 249)}, // idx 4
+  {
+    'name': 'VIOLET',
+    'theme': const Color.fromARGB(255, 228, 193, 249)
+  }, // idx 4
   {
     'name': 'YELLOW',
     'theme': const Color.fromARGB(255, 237, 231, 177)
@@ -51,12 +55,28 @@ class TrackerScreen extends StatefulWidget {
 
 class _TrackerScreenState extends State<TrackerScreen> {
   final formKey = GlobalKey<FormState>();
+  late bool isLoading2 = false;
+
+  @override
+  void initState() {
+    super.initState();
+    refreshTrackers();
+    print('initstate');
+  }
 
   @override
   void didChangeDependencies() {
-    // TODO: implement didChangeDependencies
     super.didChangeDependencies();
+    print('changedependencies');
     Provider.of<MyAppState>(context, listen: false).dailyTrackerUnlock();
+  }
+
+  Future refreshTrackers() async {
+    setState(() => isLoading2 = true);
+
+    Provider.of<MyAppState>(context, listen: false).importTrackers();
+
+    setState(() => isLoading2 = false);
   }
 
   @override
@@ -74,24 +94,6 @@ class _TrackerScreenState extends State<TrackerScreen> {
       SliverAppBar.medium(
         pinned: true,
         actions: [
-          /*IconButton(
-            onPressed: () {
-              appState.checkDatabase();
-            },
-            icon: Icon(Icons.settings),
-          ),
-          IconButton(
-            onPressed: () {
-              appState.testUnockingTrackers();
-            },
-            icon: Icon(Icons.lock),
-          ),
-          IconButton(
-            onPressed: () {
-              appState.changeTodayTimeBackwards();
-            },
-            icon: Icon(Icons.calendar_today),
-          ),*/
           IconButton(
             onPressed: () {
               Navigator.push(
@@ -131,14 +133,29 @@ class _TrackerScreenState extends State<TrackerScreen> {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(15, 10, 15, 10),
                 child: ElevatedButton(
-                  onPressed: () {},
-                  child: Text(
-                    "ADD TODAY'S JOURNAL ENTRY...",
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w400,
-                      color: widget.theme.colorScheme.onBackground,
-                    ),
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => StatisticsScreen(theme: theme),
+                        ));
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.line_axis_rounded),
+                      SizedBox(width: 20),
+                      Text(
+                        "STATISTICS",
+                        style: GoogleFonts.poppins(
+                          letterSpacing: 2,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                          color: widget.theme.colorScheme.onBackground,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -146,28 +163,53 @@ class _TrackerScreenState extends State<TrackerScreen> {
             const Divider(
               indent: 20,
               endIndent: 20,
-              height: 40,
+              height: 10,
             ),
           ],
         ),
       ),
 
       // LIST OF CARDS OF TRACKERS
-      SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (BuildContext context, int index) {
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-              child: trackerCardListItem(
-                theme: theme,
-                trackerInfo: appState.trackers[index],
-                index: index,
+      isLoading2
+          ? SliverFillRemaining(
+              hasScrollBody: false,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [CircularProgressIndicator()],
+                ),
               ),
-            );
-          },
-          childCount: appState.trackers.length,
-        ),
-      ),
+            )
+          : appState.trackers.isEmpty
+              ? SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "PRESS THE PLUS ICON TO ADD A TRACKER",
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (BuildContext context, int index) {
+                      return Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                        child: trackerCardListItem(
+                          theme: theme,
+                          trackerInfo: appState.trackers[index],
+                          index: index,
+                        ),
+                      );
+                    },
+                    childCount: appState.trackers.length,
+                  ),
+                ),
     ]);
   }
 }

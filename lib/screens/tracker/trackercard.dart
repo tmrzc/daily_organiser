@@ -9,18 +9,20 @@ import '../../provider.dart';
 import 'trackerscreen.dart';
 import 'package:daily_organiser/database/trackermodel.dart';
 
+enum ActionItems { priorityUp, priorityDown, delete, unlock }
+
 class trackerCardListItem extends StatefulWidget {
   trackerCardListItem({
     super.key,
     required this.theme,
     required this.trackerInfo,
-    this.index = 0,
+    this.index,
     this.isPreview = false,
   });
 
   final ThemeData theme;
   Tracker trackerInfo;
-  int index;
+  int? index;
   bool isPreview;
 
   @override
@@ -30,6 +32,7 @@ class trackerCardListItem extends StatefulWidget {
 class _trackerCardListItem extends State<trackerCardListItem> {
   double rating = 0;
   final counterController = TextEditingController();
+  ActionItems? selectedMenu;
 
   @override
   void initState() {
@@ -62,7 +65,7 @@ class _trackerCardListItem extends State<trackerCardListItem> {
                 children: [
                   Expanded(
                     child: Text(
-                      trackerInfo.name,
+                      '${trackerInfo.name} #${trackerInfo.priority} idx${widget.index}',
                       style: GoogleFonts.poppins(
                         fontSize: 30,
                         fontWeight: FontWeight.w500,
@@ -73,73 +76,110 @@ class _trackerCardListItem extends State<trackerCardListItem> {
                       ? const Padding(
                           padding: EdgeInsets.fromLTRB(20, 0, 0, 0),
                           child: Icon(
-                            Icons.delete,
+                            Icons.more_vert_rounded,
                           ),
                         )
-                      : IconButton(
-                          onPressed: () {
-                            showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return SimpleDialog(
-                                    title: const Text(
-                                        "Delete this tracker and it's history?"),
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceAround,
-                                        children: [
-                                          ElevatedButton(
-                                            onPressed: () {
-                                              setState(() {
-                                                appState
-                                                    .removeTracker(trackerInfo);
-                                              });
-                                              Navigator.pop(context);
-                                            },
-                                            child: const Padding(
-                                              padding: EdgeInsets.fromLTRB(
-                                                  20, 0, 20, 0),
-                                              child: Text('Yes'),
-                                            ),
-                                          ),
-                                          ElevatedButton(
-                                            style: ButtonStyle(
-                                              backgroundColor:
-                                                  MaterialStateColor
-                                                      .resolveWith((states) =>
-                                                          widget.theme
-                                                              .shadowColor),
-                                            ),
-                                            onPressed: () =>
-                                                Navigator.pop(context),
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.fromLTRB(
-                                                      20, 0, 20, 0),
-                                              child: Text(
-                                                'No',
-                                                style: TextStyle(
-                                                  color: MaterialStateColor
-                                                      .resolveWith((states) =>
-                                                          widget.theme
-                                                              .backgroundColor),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      )
-                                    ],
-                                  );
+                      : PopupMenuButton<ActionItems>(
+                          initialValue: selectedMenu,
+                          onSelected: (ActionItems item) {
+                            switch (item) {
+                              case ActionItems.priorityUp:
+                                setState(() {
+                                  print('ss ${widget.index}');
+                                  appState.trackerPrioritySwap(
+                                      widget.index!, true);
                                 });
+                                break;
+                              case ActionItems.priorityDown:
+                                setState(() {
+                                  print('ss ${widget.index}');
+                                  appState.trackerPrioritySwap(
+                                      widget.index!, false);
+                                });
+                                break;
+                              case ActionItems.delete:
+                                setState(() {
+                                  deleteDialog(context, appState, trackerInfo);
+                                });
+                                break;
+                              case ActionItems.unlock:
+                                setState(() {
+                                  appState.enableTracker(widget.trackerInfo);
+                                });
+                                break;
+                              default:
+                            }
                           },
-                          icon: const Padding(
-                            padding: EdgeInsets.fromLTRB(20, 0, 0, 0),
-                            child: Icon(
-                              Icons.delete,
+                          itemBuilder: (BuildContext context) =>
+                              <PopupMenuEntry<ActionItems>>[
+                            PopupMenuItem<ActionItems>(
+                              enabled: widget.index == 0 ? false : true,
+                              value: ActionItems.priorityUp,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: const [
+                                  Icon(Icons.arrow_upward_rounded),
+                                  Expanded(
+                                      child: Text(
+                                    'MOVE UP',
+                                    textAlign: TextAlign.right,
+                                  ))
+                                ],
+                              ),
                             ),
-                          ),
+                            PopupMenuItem<ActionItems>(
+                              enabled:
+                                  widget.index == (appState.trackers.length - 1)
+                                      ? false
+                                      : true,
+                              value: ActionItems.priorityDown,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: const [
+                                  Icon(Icons.arrow_downward_rounded),
+                                  Expanded(
+                                      child: Text(
+                                    'MOVE DOWN',
+                                    textAlign: TextAlign.right,
+                                  ))
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem<ActionItems>(
+                              value: ActionItems.delete,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: const [
+                                  Icon(Icons.delete),
+                                  Expanded(
+                                      child: Text(
+                                    'DELETE',
+                                    textAlign: TextAlign.right,
+                                  ))
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem<ActionItems>(
+                              enabled:
+                                  widget.trackerInfo.isLocked ? true : false,
+                              value: ActionItems.unlock,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: const [
+                                  Icon(Icons.lock_open_rounded),
+                                  Expanded(
+                                      child: Text(
+                                    "UNLOCK",
+                                    textAlign: TextAlign.right,
+                                  ))
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                 ],
               ),
@@ -157,6 +197,53 @@ class _trackerCardListItem extends State<trackerCardListItem> {
     );
   }
 
+  Future<dynamic> deleteDialog(
+      BuildContext context, MyAppState appState, Tracker trackerInfo) {
+    return showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return SimpleDialog(
+            title: const Text("Delete this tracker and it's history?"),
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        appState.removeTracker(trackerInfo);
+                      });
+                      Navigator.pop(context);
+                    },
+                    child: const Padding(
+                      padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
+                      child: Text('Yes'),
+                    ),
+                  ),
+                  ElevatedButton(
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateColor.resolveWith(
+                          (states) => widget.theme.shadowColor),
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                      child: Text(
+                        'No',
+                        style: TextStyle(
+                          color: MaterialStateColor.resolveWith(
+                              (states) => widget.theme.backgroundColor),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            ],
+          );
+        });
+  }
+
   // ------ MENU SWITCHER FOR DIFFERENT TYPES OF TRACEKRS ------
   Widget typeDependantOptions(bool isPreview, Tracker tracker) {
     var appState = context.watch<MyAppState>();
@@ -165,7 +252,7 @@ class _trackerCardListItem extends State<trackerCardListItem> {
       return Row(
         children: [
           Expanded(child: option),
-          enableSubmitButton
+          /*enableSubmitButton
               ? Padding(
                   padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
                   child: isPreview
@@ -180,7 +267,8 @@ class _trackerCardListItem extends State<trackerCardListItem> {
                           },
                         ),
                 )
-              : SizedBox()
+              : */
+          SizedBox()
         ],
       );
     }
@@ -189,7 +277,7 @@ class _trackerCardListItem extends State<trackerCardListItem> {
       return Row(
         children: [
           Expanded(child: disabledTracker()),
-          Padding(
+          /*Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
             child: IconButton(
               icon: const Icon(Icons.edit),
@@ -199,7 +287,7 @@ class _trackerCardListItem extends State<trackerCardListItem> {
                 });
               },
             ),
-          ),
+          ),*/
         ],
       );
     }
@@ -219,9 +307,17 @@ class _trackerCardListItem extends State<trackerCardListItem> {
   }
 
   Padding disabledTracker() {
-    return const Padding(
+    return Padding(
       padding: EdgeInsets.fromLTRB(10, 7, 0, 7),
-      child: Center(child: Text('S a v e d !')),
+      child: Center(
+          child: Text(
+        'SAVED FOR TODAY',
+        style: GoogleFonts.poppins(
+          fontSize: 16,
+          letterSpacing: 2,
+          fontWeight: FontWeight.w500,
+        ),
+      )),
     );
   }
 
@@ -308,6 +404,8 @@ class _trackerCardListItem extends State<trackerCardListItem> {
   }
 
   Padding counterOption() {
+    var appState = context.watch<MyAppState>();
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 4, 0, 4),
       child: Center(
@@ -363,6 +461,28 @@ class _trackerCardListItem extends State<trackerCardListItem> {
                   },
                   child: Icon(Icons.add),
                 ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(5, 0, 5, 0),
+                  child: Container(
+                    height: 30,
+                    width: 1,
+                    color: widget.theme.disabledColor,
+                  ),
+                ),
+                widget.isPreview
+                    ? ElevatedButton(
+                        child: const Icon(Icons.check),
+                        onPressed: () {},
+                      )
+                    : ElevatedButton(
+                        child: const Icon(Icons.check),
+                        onPressed: () {
+                          setState(() {
+                            appState.saveValueToTracker(
+                                widget.trackerInfo, rating);
+                          });
+                        },
+                      )
               ],
             ),
           ),

@@ -12,6 +12,7 @@ class TrackerTable {
     isLocked,
     value,
     stats_id,
+    priority,
   ];
 
   static const String id_tracker = 'id_tracker';
@@ -22,6 +23,7 @@ class TrackerTable {
   static const String isLocked = 'isLocked';
   static const String value = 'value';
   static const String stats_id = 'stats_id';
+  static const String priority = 'priority';
 }
 
 class Tracker {
@@ -33,6 +35,7 @@ class Tracker {
   bool isLocked;
   double? value;
   int? stats_id;
+  int? priority;
 
   Tracker({
     this.id,
@@ -43,6 +46,7 @@ class Tracker {
     required this.isLocked,
     this.value,
     this.stats_id,
+    this.priority,
   });
 
   Tracker copy(
@@ -53,7 +57,8 @@ class Tracker {
           int? range,
           bool? isLocked,
           double? value,
-          int? stats_id}) =>
+          int? stats_id,
+          int? priority}) =>
       Tracker(
         id: id ?? this.id,
         name: name ?? this.name,
@@ -63,6 +68,7 @@ class Tracker {
         isLocked: isLocked ?? this.isLocked,
         value: value ?? this.value,
         stats_id: stats_id ?? this.stats_id,
+        priority: priority ?? this.priority,
       );
 
   static Tracker fromJson(Map<String, Object?> json) => Tracker(
@@ -74,6 +80,7 @@ class Tracker {
         isLocked: json[TrackerTable.isLocked] == 1,
         value: json[TrackerTable.value] as double?,
         stats_id: json[TrackerTable.stats_id] as int?,
+        priority: json[TrackerTable.priority] as int?,
       );
 
   Map<String, Object?> toJson() => {
@@ -85,6 +92,7 @@ class Tracker {
         TrackerTable.isLocked: isLocked ? 1 : 0,
         TrackerTable.value: value,
         TrackerTable.stats_id: stats_id,
+        TrackerTable.priority: priority,
       };
 
   TrackerType stringConvertertoType(String typeString) {

@@ -47,7 +47,7 @@ class _TrackerPopup extends State<TrackerPopup> {
 
     counterController.text = '0';
     _titlecontroller.text = 'Title...';
-    _rangeController.text = '10';
+    _rangeController.text = '100';
     _titlecontroller.addListener(textChanger);
     _rangeController.addListener(rangeChanger);
     counterController.addListener(counterChanger);

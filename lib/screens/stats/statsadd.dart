@@ -1,3 +1,4 @@
+import 'package:daily_organiser/database/databaseusage.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,26 +8,25 @@ import 'package:daily_organiser/database/trackermodel.dart';
 import 'package:daily_organiser/database/statsmodel.dart';
 import 'package:daily_organiser/screens/tracker/trackerpopup.dart';
 
-class EditStatsPopup extends StatefulWidget {
-  const EditStatsPopup({
+class AddStatsPopup extends StatefulWidget {
+  const AddStatsPopup({
     super.key,
     required this.theme,
     required this.trackerInfo,
-    required this.stat,
   });
 
   final ThemeData theme;
   final Tracker trackerInfo;
-  final Stat stat;
 
   @override
-  State<EditStatsPopup> createState() => _EditStatsPopup();
+  State<AddStatsPopup> createState() => _AddStatsPopup();
 }
 
-class _EditStatsPopup extends State<EditStatsPopup> {
+class _AddStatsPopup extends State<AddStatsPopup> {
   bool isLoading = false;
   late DateTime chosenTime;
   final _valueController = TextEditingController();
+  List<Stat> statList = [];
 
   // KEY FOR VALIDATION OF THE FORM
   final formKey = GlobalKey<FormState>();
@@ -34,13 +34,9 @@ class _EditStatsPopup extends State<EditStatsPopup> {
   @override
   void initState() {
     super.initState();
-    chosenTime = DateTime.utc(
-      widget.stat.year,
-      widget.stat.month,
-      widget.stat.day,
-    );
+    chosenTime = DateTime.now();
 
-    _valueController.text = widget.stat.value.toString();
+    _valueController.text = '';
   }
 
   @override
@@ -51,7 +47,7 @@ class _EditStatsPopup extends State<EditStatsPopup> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          '${widget.stat.year} / ${widget.stat.month} / ${widget.stat.day}',
+          widget.trackerInfo.name,
           style: GoogleFonts.poppins(
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -68,11 +64,34 @@ class _EditStatsPopup extends State<EditStatsPopup> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                HeaderText(widget: widget, header: 'DATE'),
+
+                ElevatedButton(
+                  onPressed: () async {
+                    final DateTime? dateTime = await showDatePicker(
+                      currentDate: chosenTime,
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime(1999),
+                      lastDate: DateTime.now(),
+                    );
+                    if (dateTime != null) {
+                      setState(() {
+                        chosenTime = dateTime;
+                      });
+                    }
+                  },
+                  child: Text(
+                      '${chosenTime.year} / ${chosenTime.month} / ${chosenTime.day}'),
+                ),
+
                 HeaderText(widget: widget, header: 'VALUE'),
 
                 TextFormField(
                   keyboardType: TextInputType.number,
                   controller: _valueController,
+                  onTapOutside: (event) =>
+                      importSelectedDate(chosenTime, widget.trackerInfo.id!),
                   onTap: () => _valueController.clear(),
                   validator: (String? value) {
                     return (int.tryParse(value!) == null && value != null)
@@ -93,23 +112,37 @@ class _EditStatsPopup extends State<EditStatsPopup> {
 
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                      minimumSize: Size.fromHeight(50)),
+                      minimumSize: const Size.fromHeight(50)),
                   onPressed: () {
                     final isValidForm = formKey.currentState!.validate();
 
                     if (isValidForm) {
-                      var newStat = Stat(
-                        id: widget.stat.id,
-                        tracker_id: widget.trackerInfo.id!,
-                        year: widget.stat.year,
-                        month: widget.stat.month,
-                        day: widget.stat.day,
-                        value: stringToInt(_valueController).toDouble(),
-                      );
-                      setState(() {
-                        appState.updateStat(newStat);
-                      });
-                      Navigator.of(context).pop();
+                      if (statList.isEmpty) {
+                        setState(() {
+                          appState.saveValueToTracker(
+                            widget.trackerInfo,
+                            stringToInt(_valueController).toDouble(),
+                            chosenTime.year,
+                            chosenTime.month,
+                            chosenTime.day,
+                          );
+                        });
+
+                        Navigator.of(context).pop();
+                      } else {
+                        Stat newStat = Stat(
+                          id: statList[0].id,
+                          tracker_id: widget.trackerInfo.id!,
+                          year: chosenTime.year,
+                          month: chosenTime.month,
+                          day: chosenTime.day,
+                          value: stringToInt(_valueController).toDouble(),
+                        );
+                        setState(() {
+                          appState.updateStat(newStat);
+                        });
+                        Navigator.of(context).pop();
+                      }
                     }
                   },
                   child: const Text(
@@ -124,6 +157,15 @@ class _EditStatsPopup extends State<EditStatsPopup> {
         ),
       ),
     );
+  }
+
+  void importSelectedDate(DateTime dateTime, int tracker_id) async {
+    setState(() => isLoading = true);
+
+    statList = await OrganiserDatabase.instance
+        .returnSelectedDateStat(chosenTime, tracker_id);
+
+    setState(() => isLoading = false);
   }
 
   int stringToInt(TextEditingController controllerExample) {

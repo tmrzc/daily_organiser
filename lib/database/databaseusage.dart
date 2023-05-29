@@ -1,8 +1,11 @@
+import 'package:daily_organiser/database/notemodel.dart';
 import 'package:sqflite/sqflite.dart';
 import 'todomodel.dart';
 import 'trackermodel.dart';
 import 'statsmodel.dart';
+import 'notemodel.dart';
 import 'package:path/path.dart';
+import 'dart:developer';
 
 class OrganiserDatabase {
   static final OrganiserDatabase instance = OrganiserDatabase._init();
@@ -26,7 +29,7 @@ class OrganiserDatabase {
     //path1 = path;
 
     return await openDatabase(path,
-        version: 4, onCreate: _createDB, onUpgrade: _onUpgrade);
+        version: 10, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   Future _createDB(Database db, int version) async {
@@ -45,6 +48,16 @@ class OrganiserDatabase {
     ''');
 
     await db.execute('''
+    CREATE TABLE $tableNotes (
+      ${JournalNotes.id} $idType,
+      ${JournalNotes.dateYear} $integerType,
+      ${JournalNotes.dateMonth} $integerType,
+      ${JournalNotes.dateDay} $integerType,
+      ${JournalNotes.noteContent} $textType
+    )
+    ''');
+
+    await db.execute('''
     CREATE TABLE $tableTodo (
       ${TodoTable.id} $idType,
       ${TodoTable.value_todo} $textType,
@@ -60,7 +73,8 @@ class OrganiserDatabase {
       ${TrackerTable.range_tracker} $integerType,
       ${TrackerTable.isLocked} $boolType,
       ${TrackerTable.value} $doubleTypeNULLABLE,
-      ${TrackerTable.stats_id} $integerTypeNULLABLE
+      ${TrackerTable.stats_id} $integerTypeNULLABLE,
+      ${TrackerTable.priority} $integerTypeNULLABLE
     )''');
 
     await db.execute('''
@@ -84,6 +98,7 @@ class OrganiserDatabase {
     const integerTypeNULLABLE = 'INTEGER';
 
     if (oldVersion < newVersion) {
+      await db.execute('DROP TABLE $tableNotes');
       await db.execute('DROP TABLE $tableTodo');
       await db.execute('DROP TABLE $tableTracker');
       await db.execute('DROP TABLE $tableStats');
@@ -93,6 +108,16 @@ class OrganiserDatabase {
     CREATE TABLE currentTime (
       current_time $textType
     ) 
+    ''');
+
+      await db.execute('''
+    CREATE TABLE $tableNotes (
+      ${JournalNotes.id} $idType,
+      ${JournalNotes.dateYear} $integerType,
+      ${JournalNotes.dateMonth} $integerType,
+      ${JournalNotes.dateDay} $integerType,
+      ${JournalNotes.noteContent} $textType
+    )
     ''');
 
       await db.execute('''
@@ -111,7 +136,8 @@ class OrganiserDatabase {
       ${TrackerTable.range_tracker} $integerType,
       ${TrackerTable.isLocked} $boolType,
       ${TrackerTable.value} $doubleTypeNULLABLE,
-      ${TrackerTable.stats_id} $integerTypeNULLABLE
+      ${TrackerTable.stats_id} $integerTypeNULLABLE,
+      ${TrackerTable.priority} $integerTypeNULLABLE
     )''');
 
       await db.execute('''
@@ -129,14 +155,51 @@ class OrganiserDatabase {
   Future<void> deleteDatabase(String path) =>
       databaseFactory.deleteDatabase(path);
 
+// ------ NOTES DATABASE ------
+
+  Future<Note> createNote(Note note) async {
+    final db = await instance.database;
+
+    final id = await db.insert(tableNotes, note.toJson());
+
+    return note.copy(id: id);
+  }
+
+  Future<List<Note>> readAllNotes() async {
+    final db = await instance.database;
+
+    final listOfMaps = await db.query(tableNotes);
+
+    return listOfMaps.map((json) => Note.fromJson(json)).toList();
+  }
+
+  Future<int> updateNote(Note note) async {
+    final db = await instance.database;
+
+    return db.update(
+      tableNotes,
+      note.toJson(),
+      where: '${JournalNotes.id} = ?',
+      whereArgs: [note.id],
+    );
+  }
+
+  Future<int> deleteNote(Note note) async {
+    final db = await instance.database;
+
+    return db.delete(
+      tableNotes,
+      where: '${JournalNotes.id} = ?',
+      whereArgs: [note.id],
+    );
+  }
+
 // ------ TODO DATABASE ------
 
   Future<Todo> createTodo(Todo todo) async {
     final db = await instance.database;
 
     final id = await db.insert(tableTodo, todo.toJson());
-    //await db.close();
-    //await deleteDatabase(path1);
 
     return todo.copy(id: id);
   }
@@ -189,18 +252,26 @@ class OrganiserDatabase {
   Future<Tracker> createTracker(Tracker tracker) async {
     final db = await instance.database;
 
-    final id = await db.insert(tableTracker, tracker.toJson());
+    final trackerId = await db.insert(tableTracker, tracker.toJson());
 
-    return tracker.copy(id: id);
+    return tracker.copy(id: trackerId, priority: trackerId);
+  }
+
+  Future prioritySwap(Tracker tracker1, Tracker tracker2) async {
+    final db = await instance.database;
+    int temp = tracker2.priority!;
+    tracker2.priority = tracker1.priority;
+    tracker1.priority = temp;
+
+    await updateTracker(tracker1);
+    await updateTracker(tracker2);
   }
 
   Future<List<Tracker>> readTrackers() async {
     final db = await instance.database;
 
-    final listOfMaps = await db.query(
-      tableTracker,
-      columns: TrackerTable.values,
-    );
+    final listOfMaps = await db.query(tableTracker,
+        columns: TrackerTable.values, orderBy: '${TrackerTable.priority} DESC');
 
     return listOfMaps.map((json) => Tracker.fromJson(json)).toList();
   }
@@ -340,6 +411,23 @@ class OrganiserDatabase {
     return listOfXDays;
   }
 
+  Future<List<Stat>> returnSelectedDateStat(
+      DateTime dateTime, int tracker_id) async {
+    final db = await instance.database;
+
+    List<Map<String, Object?>> listOfMaps = await db.query(
+      tableStats,
+      where: '''${TrackerStats.tracker_id} = ? AND 
+                ${TrackerStats.date_year} = ? AND
+                ${TrackerStats.date_month} = ? AND
+                ${TrackerStats.date_day} = ?''',
+      whereArgs: [tracker_id, dateTime.year, dateTime.month, dateTime.day],
+      limit: 1,
+    );
+
+    return listOfMaps.map((json) => Stat.fromJson(json)).toList();
+  }
+
   Future<double> returnHighestValue(int tracker_id) async {
     final db = await instance.database;
 
@@ -347,7 +435,7 @@ class OrganiserDatabase {
       tableStats,
       where: '${TrackerStats.tracker_id} = ?',
       whereArgs: [tracker_id],
-      orderBy: '${TrackerStats.value_stats}',
+      orderBy: '${TrackerStats.value_stats} DESC',
       limit: 1,
     );
 

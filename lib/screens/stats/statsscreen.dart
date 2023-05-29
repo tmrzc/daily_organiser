@@ -31,29 +31,22 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     var appState = context.watch<MyAppState>();
     var trackers = appState.trackers;
 
-    return CustomScrollView(slivers: <Widget>[
-      // APP BAR WITH TITLE OF A SCREEN
-      SliverAppBar.medium(
-        pinned: true,
-        actions: [
-          IconButton(
-            onPressed: () {
-              appState.fillUpTrackersStats(30, 100);
-            },
-            icon: Icon(Icons.smoking_rooms_rounded),
-          ),
-          IconButton(
-            onPressed: () {
-              appState.fillUpTrackersStats(30, 10);
-            },
-            icon: Icon(Icons.smoke_free),
-          )
-        ],
-        flexibleSpace: FlexibleSpaceBar(
-          centerTitle: false,
-          title: Transform(
-            transform: Matrix4.translationValues(-30.0, 0.0, 0.0),
-            child: Text(
+    return Scaffold(
+      body: CustomScrollView(slivers: <Widget>[
+        // APP BAR WITH TITLE OF A SCREEN
+        SliverAppBar.medium(
+          pinned: true,
+          actions: [
+            IconButton(
+              onPressed: () {
+                appState.fillUpTrackersStats(80, 100);
+              },
+              icon: Icon(Icons.factory_outlined),
+            ),
+          ],
+          flexibleSpace: FlexibleSpaceBar(
+            centerTitle: true,
+            title: Text(
               "STATISTICS:",
               style: GoogleFonts.poppins(
                 fontSize: 30,
@@ -61,27 +54,47 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 color: widget.theme.colorScheme.onBackground,
               ),
             ),
+            background: Container(color: widget.theme.colorScheme.background),
           ),
-          background: Container(color: widget.theme.colorScheme.background),
         ),
-      ),
 
-      // TRACKERS STATS FOR PAST WEEK
-      SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (BuildContext context, int index) {
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-              child: statsCard(
-                trackers,
-                index,
+        // TRACKERS STATS FOR PAST WEEK
+        appState.trackers.isEmpty
+            ? SliverFillRemaining(
+                hasScrollBody: false,
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "ADD TRACKERS FIRST TO SHOW THEIR STATISTICS",
+                          style: TextStyle(color: Colors.grey),
+                          textWidthBasis: TextWidthBasis.parent,
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              )
+            : SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (BuildContext context, int index) {
+                    return Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                      child: statsCard(
+                        trackers,
+                        index,
+                      ),
+                    );
+                  },
+                  childCount: trackers.length,
+                ),
               ),
-            );
-          },
-          childCount: trackers.length,
-        ),
-      ),
-    ]);
+      ]),
+    );
   }
 
   Padding statsCard(List<Tracker> trackers, int index) {
