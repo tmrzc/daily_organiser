@@ -28,7 +28,7 @@ class TrackerTable {
 
 class Tracker {
   final int? id;
-  final String name;
+  String name;
   final String type;
   final int color;
   int range;

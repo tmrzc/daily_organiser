@@ -41,7 +41,7 @@ class _StatsPopup extends State<StatsPopup> {
   List<FlSpot> listOfSpots = [];
   List<Stat> statsList = [];
   double maxCounterValue = 0;
-  ChartRangeItems chartRangeItemView = ChartRangeItems.all;
+  ChartRangeItems chartRangeItemView = ChartRangeItems.last30days;
   int numberOfDaysSinceFirstEntry = 0;
 
   @override
@@ -150,12 +150,13 @@ class _StatsPopup extends State<StatsPopup> {
                   : ListView.builder(
                       itemCount: historyList.length,
                       itemBuilder: (context, index) {
-                        return historyList[index].day == 1
+                        return historyList[index].day == 1 &&
+                                historyList[index] != historyList.last
                             ? Column(
                                 children: [
                                   valuesHistoryListTile(index, context, theme),
                                   SizedBox(height: 10),
-                                  HeaderText(
+                                  DatesDivider(
                                       widget: widget,
                                       header:
                                           '${monthStringFromInt(historyList[index].month)} ${historyList[index].year}'),
@@ -233,6 +234,15 @@ class _StatsPopup extends State<StatsPopup> {
 
     historyList = await OrganiserDatabase.instance.readStats(tracker_id);
 
+    if (historyList.isNotEmpty) {
+      int day = historyList.last.day;
+      int month = historyList.last.month;
+      int year = historyList.last.year;
+      DateTime firstEntryDate = DateTime.utc(year, month, day);
+      numberOfDaysSinceFirstEntry =
+          DateTime.now().difference(firstEntryDate).inDays + 5;
+    }
+
     if (mounted) {
       setState(() => isHistoryLoading = false);
     }
@@ -240,13 +250,6 @@ class _StatsPopup extends State<StatsPopup> {
     if (historyList.isEmpty) {
       return 1;
     }
-
-    int day = historyList.last.day;
-    int month = historyList.last.month;
-    int year = historyList.last.year;
-    DateTime firstEntryDate = DateTime.utc(year, month, day);
-    numberOfDaysSinceFirstEntry =
-        DateTime.now().difference(firstEntryDate).inDays;
 
     return numberOfDaysSinceFirstEntry;
   }
@@ -305,6 +308,50 @@ class _StatsPopup extends State<StatsPopup> {
   }
 }
 
+class DatesDivider extends StatelessWidget {
+  DatesDivider({
+    super.key,
+    required this.widget,
+    required this.header,
+  });
+
+  var widget;
+  final String header;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
+      child: Row(
+        children: <Widget>[
+          Expanded(
+            child: Container(
+              height: 1,
+              width: 40,
+              color: widget.theme.disabledColor,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+            child: Text(
+              header,
+              style: GoogleFonts.poppins(
+                  fontSize: 15, fontWeight: FontWeight.w400),
+            ),
+          ),
+          Expanded(
+            child: Container(
+              height: 1,
+              width: 40,
+              color: widget.theme.disabledColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // ------ HEADER WITH BUTTON ------
 class HeaderTextWithButton extends StatelessWidget {
   HeaderTextWithButton({
@@ -322,9 +369,13 @@ class HeaderTextWithButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: <Widget>[
-        Text(
-          header,
-          style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w400),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
+          child: Text(
+            header,
+            style:
+                GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w600),
+          ),
         ),
         Expanded(
           child: Container(

@@ -296,7 +296,7 @@ class HeaderText extends StatelessWidget {
             child: Text(
               header,
               style: GoogleFonts.poppins(
-                  fontSize: 20, fontWeight: FontWeight.w400),
+                  fontSize: 20, fontWeight: FontWeight.w600),
             ),
           ),
           Expanded(

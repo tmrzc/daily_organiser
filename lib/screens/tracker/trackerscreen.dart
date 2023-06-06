@@ -61,14 +61,17 @@ class _TrackerScreenState extends State<TrackerScreen> {
   void initState() {
     super.initState();
     refreshTrackers();
-    print('initstate');
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    print('changedependencies');
-    Provider.of<MyAppState>(context, listen: false).dailyTrackerUnlock();
+    var appState = context.watch<MyAppState>();
+    if (!appState.isDailyChangeActive) {
+      appState.isDailyChangeActive = true;
+      appState.dailyTrackerAndTodoCheck();
+      appState.isDailyChangeActive = false;
+    }
   }
 
   Future refreshTrackers() async {

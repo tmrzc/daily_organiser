@@ -12,10 +12,12 @@ class JournalPopup extends StatefulWidget {
   JournalPopup({
     required this.modeSelector,
     this.noteEdited,
+    required this.theme,
   });
 
   PopupMode? modeSelector;
   Note? noteEdited;
+  ThemeData theme;
 
   @override
   State<JournalPopup> createState() => _JournalPopup();
@@ -63,8 +65,7 @@ class _JournalPopup extends State<JournalPopup> {
           widget.modeSelector == PopupMode.edit
               ? IconButton(
                   onPressed: () {
-                    appState.deleteNote(widget.noteEdited!);
-                    Navigator.of(context).pop();
+                    deleteDialog(context, appState, widget.noteEdited!);
                   },
                   icon: Icon(Icons.delete))
               : Container(),
@@ -130,5 +131,53 @@ class _JournalPopup extends State<JournalPopup> {
         ),
       ),
     );
+  }
+
+  Future<dynamic> deleteDialog(
+      BuildContext context, MyAppState appState, Note note) {
+    return showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return SimpleDialog(
+            title: const Text("Delete this note?"),
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        appState.deleteNote(note);
+                      });
+                      Navigator.pop(context);
+                      Navigator.pop(context);
+                    },
+                    child: const Padding(
+                      padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
+                      child: Text('Yes'),
+                    ),
+                  ),
+                  ElevatedButton(
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateColor.resolveWith(
+                          (states) => widget.theme.shadowColor),
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                      child: Text(
+                        'No',
+                        style: TextStyle(
+                          color: MaterialStateColor.resolveWith(
+                              (states) => widget.theme.backgroundColor),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            ],
+          );
+        });
   }
 }

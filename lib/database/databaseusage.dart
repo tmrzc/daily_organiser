@@ -6,6 +6,7 @@ import 'statsmodel.dart';
 import 'notemodel.dart';
 import 'package:path/path.dart';
 import 'dart:developer';
+import 'todoweeklymodel.dart';
 
 class OrganiserDatabase {
   static final OrganiserDatabase instance = OrganiserDatabase._init();
@@ -29,7 +30,7 @@ class OrganiserDatabase {
     //path1 = path;
 
     return await openDatabase(path,
-        version: 10, onCreate: _createDB, onUpgrade: _onUpgrade);
+        version: 12, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   Future _createDB(Database db, int version) async {
@@ -48,6 +49,20 @@ class OrganiserDatabase {
     ''');
 
     await db.execute('''
+    CREATE TABLE $tableTodoManager (
+      ${TodoManagerTable.id} $idType,
+      ${TodoManagerTable.mon} $boolType,
+      ${TodoManagerTable.tue} $boolType,
+      ${TodoManagerTable.wed} $boolType,
+      ${TodoManagerTable.thu} $boolType,
+      ${TodoManagerTable.fr} $boolType,
+      ${TodoManagerTable.sat} $boolType,
+      ${TodoManagerTable.sun} $boolType,
+      ${TodoManagerTable.title} $textType
+    )
+    ''');
+
+    await db.execute('''
     CREATE TABLE $tableNotes (
       ${JournalNotes.id} $idType,
       ${JournalNotes.dateYear} $integerType,
@@ -61,7 +76,8 @@ class OrganiserDatabase {
     CREATE TABLE $tableTodo (
       ${TodoTable.id} $idType,
       ${TodoTable.value_todo} $textType,
-      ${TodoTable.isDone} $boolType
+      ${TodoTable.isDone} $boolType,
+      ${TodoTable.manager_id} $integerTypeNULLABLE
     )''');
 
     await db.execute('''
@@ -102,12 +118,27 @@ class OrganiserDatabase {
       await db.execute('DROP TABLE $tableTodo');
       await db.execute('DROP TABLE $tableTracker');
       await db.execute('DROP TABLE $tableStats');
+      await db.execute('DROP TABLE $tableTodoManager');
       await db.execute('DROP TABLE currentTime');
 
       await db.execute('''
     CREATE TABLE currentTime (
       current_time $textType
     ) 
+    ''');
+
+      await db.execute('''
+    CREATE TABLE $tableTodoManager (
+      ${TodoManagerTable.id} $idType,
+      ${TodoManagerTable.mon} $boolType,
+      ${TodoManagerTable.tue} $boolType,
+      ${TodoManagerTable.wed} $boolType,
+      ${TodoManagerTable.thu} $boolType,
+      ${TodoManagerTable.fr} $boolType,
+      ${TodoManagerTable.sat} $boolType,
+      ${TodoManagerTable.sun} $boolType,
+      ${TodoManagerTable.title} $textType
+    )
     ''');
 
       await db.execute('''
@@ -124,7 +155,8 @@ class OrganiserDatabase {
     CREATE TABLE $tableTodo (
       ${TodoTable.id} $idType,
       ${TodoTable.value_todo} $textType,
-      ${TodoTable.isDone} $boolType
+      ${TodoTable.isDone} $boolType,
+      ${TodoTable.manager_id} $integerTypeNULLABLE
     )''');
 
       await db.execute('''
@@ -155,6 +187,105 @@ class OrganiserDatabase {
   Future<void> deleteDatabase(String path) =>
       databaseFactory.deleteDatabase(path);
 
+// ------ MANAGER ------
+
+  Future<TodoManager> createTodoManager(TodoManager todoManager) async {
+    final db = await instance.database;
+
+    final id = await db.insert(tableTodoManager, todoManager.toJson());
+
+    return todoManager.copy(id: id);
+  }
+
+  Future<List<TodoManager>> readManagersOfSelectedDay(int weekDay) async {
+    final db = await instance.database;
+    late var query;
+
+    switch (weekDay) {
+      case 1:
+        query = TodoManagerTable.mon;
+        break;
+      case 2:
+        query = TodoManagerTable.tue;
+        break;
+      case 3:
+        query = TodoManagerTable.wed;
+        break;
+      case 4:
+        query = TodoManagerTable.thu;
+        break;
+      case 5:
+        query = TodoManagerTable.fr;
+        break;
+      case 6:
+        query = TodoManagerTable.sat;
+        break;
+      case 7:
+        query = TodoManagerTable.sun;
+        break;
+      default:
+    }
+
+    final listOfMaps = await db.query(
+      tableTodoManager,
+      where: '$query = ?',
+      whereArgs: [1],
+    );
+
+    return listOfMaps.map((json) => TodoManager.fromJson(json)).toList();
+  }
+
+  Future<List<TodoManager>> readTodoManagers() async {
+    final db = await instance.database;
+
+    final listOfMaps = await db.query(tableTodoManager);
+
+    return listOfMaps.map((json) => TodoManager.fromJson(json)).toList();
+  }
+
+  Future<TodoManager> readSelectedTodoManager(TodoManager todoManager) async {
+    final db = await instance.database;
+
+    final listOfMaps = await db.query(
+      tableTodoManager,
+      where: '${TodoManagerTable.id} = ?',
+      whereArgs: [todoManager.id],
+    );
+
+    return listOfMaps.map((json) => TodoManager.fromJson(json)).toList()[0];
+  }
+
+  Future<int> deleteTodoManager(TodoManager todoManager) async {
+    final db = await instance.database;
+
+    return db.delete(
+      tableTodoManager,
+      where: '${TodoManagerTable.id} = ?',
+      whereArgs: [todoManager.id],
+    );
+  }
+
+  Future<int> updateTodoManger(TodoManager todoManager) async {
+    final db = await instance.database;
+
+    return db.update(
+      tableTodoManager,
+      todoManager.toJson(),
+      where: '${TodoManagerTable.id} = ?',
+      whereArgs: [todoManager.id],
+    );
+  }
+
+  Future<int> deleteTodoFromManager(TodoManager todoManager) async {
+    final db = await instance.database;
+
+    return db.delete(
+      tableTodo,
+      where: '${TodoTable.manager_id} = ?',
+      whereArgs: [todoManager.id],
+    );
+  }
+
 // ------ NOTES DATABASE ------
 
   Future<Note> createNote(Note note) async {
@@ -168,7 +299,11 @@ class OrganiserDatabase {
   Future<List<Note>> readAllNotes() async {
     final db = await instance.database;
 
-    final listOfMaps = await db.query(tableNotes);
+    final listOfMaps = await db.query(
+      tableNotes,
+      orderBy:
+          '${JournalNotes.dateYear} DESC, ${JournalNotes.dateMonth} DESC, ${JournalNotes.dateDay} DESC',
+    );
 
     return listOfMaps.map((json) => Note.fromJson(json)).toList();
   }

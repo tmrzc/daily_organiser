@@ -5,18 +5,30 @@ import 'database/todomodel.dart';
 import 'database/trackermodel.dart';
 import 'database/statsmodel.dart';
 import 'database/notemodel.dart';
+import 'database/todoweeklymodel.dart';
 import 'dart:math';
 import 'dart:developer';
 
 // ------ CHANGE NOTIFIER ------
 
 class MyAppState extends ChangeNotifier {
+  DateTime? currentTime;
+  bool isDailyChangeActive = false;
+
   late List<Todo> TodoList = [];
   late List<Todo> DoneList = [];
 
   List<Tracker> trackers = [];
 
   var db = OrganiserDatabase.instance;
+
+  // ------ TODOMANAGER ------
+
+  Future<TodoManager> addTodoManager(TodoManager todoManager) async {
+    final newTodoManager = await db.createTodoManager(todoManager);
+    notifyListeners();
+    return newTodoManager;
+  }
 
   // ------ JOURNAL ------
 
@@ -48,22 +60,79 @@ class MyAppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void importTodoFromManager(TodoManager tM) {
+    var now = DateTime.now();
+    List<bool> managersDays = [
+      tM.mon,
+      tM.tue,
+      tM.wed,
+      tM.thu,
+      tM.fr,
+      tM.sat,
+      tM.sun
+    ];
+
+    if (managersDays[now.weekday - 1]) {
+      addTodo(tM.title, false, tM);
+    }
+    notifyListeners();
+  }
+
+  Future<int> importTodaysTodoManagers(DateTime now) async {
+    List<TodoManager> recursiveTodoManagers =
+        await db.readManagersOfSelectedDay(now.weekday);
+
+    for (int i = 0; i < recursiveTodoManagers.length; i++) {
+      addTodo(recursiveTodoManagers[i].title, false, recursiveTodoManagers[i]);
+    }
+
+    notifyListeners();
+    return recursiveTodoManagers.length;
+  }
+
+  void deleteTodoManager(TodoManager todoManager) async {
+    await db.deleteTodoManager(todoManager);
+    notifyListeners();
+  }
+
+  void deleteTodoFromManager(TodoManager todoManager) async {
+    await db.deleteTodoFromManager(todoManager);
+    notifyListeners();
+  }
+
   // CREATING NEW TO-DO LIST ELEMENTS
-  Future<void> addTodo(var title) async {
-    var newTodo = Todo(value: title, isDone: false);
+  Future<void> addTodo(var title, bool isDone,
+      [TodoManager? todoManager]) async {
+    late var newTodo;
+
+    if (isDone) {
+      todoManager == null
+          ? newTodo = Todo(value: title, isDone: true)
+          : newTodo =
+              Todo(value: title, isDone: true, manager_id: todoManager.id);
+      DoneList.insert(0, newTodo);
+    } else {
+      todoManager == null
+          ? newTodo = Todo(value: title, isDone: false)
+          : newTodo =
+              Todo(value: title, isDone: false, manager_id: todoManager.id);
+      TodoList.insert(0, newTodo);
+    }
+
     newTodo = await db.createTodo(newTodo);
-    TodoList.insert(0, newTodo);
 
     notifyListeners();
   }
 
   // FINISHING A TASK AND DELETING IT FROM TO DO'S
   void switchListsTodo(
-      List<Todo> fromList, List<Todo> toList, Todo task, int idx) {
+      List<Todo> fromList, List<Todo> toList, Todo task, int idx) async {
     //task.isDone = !task.isDone;
-    toList.insert(0, fromList[idx]);
-    fromList.removeAt(idx);
-    db.updateTodo(task);
+
+    await db.updateTodo(task).then((value) {
+      toList.insert(0, fromList[idx]);
+      fromList.removeAt(idx);
+    });
 
     notifyListeners();
   }
@@ -78,7 +147,7 @@ class MyAppState extends ChangeNotifier {
 
   void importTrackers() async {
     trackers = await db.readTrackers();
-    inspect(trackers);
+    //inspect(trackers);
     notifyListeners();
   }
 
@@ -91,10 +160,8 @@ class MyAppState extends ChangeNotifier {
       range: rangeMax,
       isLocked: false,
     );
-    inspect(tracker);
     tracker = await db.createTracker(tracker);
     updateTracker(tracker);
-    inspect(tracker);
     trackers.isEmpty ? trackers.add(tracker) : trackers.insert(0, tracker);
 
     notifyListeners();
@@ -128,12 +195,10 @@ class MyAppState extends ChangeNotifier {
   void trackerPrioritySwap(int idx, bool toTop) async {
     int tempUp = 0;
     int tempDown = 0;
-    print('$idx $toTop');
 
     if (toTop == true) {
       tempUp = trackers[idx - 1].priority!;
       tempDown = trackers[idx].priority!;
-      print('UP down$tempDown up$tempUp');
       trackers[idx - 1].priority = tempDown;
       trackers[idx].priority = tempUp;
       await db.updateTracker(trackers[idx]);
@@ -141,7 +206,6 @@ class MyAppState extends ChangeNotifier {
     } else {
       tempDown = trackers[idx + 1].priority!;
       tempUp = trackers[idx].priority!;
-      print('DOWN down$tempDown up$tempUp');
       trackers[idx + 1].priority = tempUp;
       trackers[idx].priority = tempDown;
       await db.updateTracker(trackers[idx]);
@@ -175,15 +239,15 @@ class MyAppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void dailyTrackerUnlock() async {
+  bool isSameDay(DateTime? dateA, DateTime? dateB) {
+    return dateA?.year == dateB?.year &&
+        dateA?.month == dateB?.month &&
+        dateA?.day == dateB?.day;
+  }
+
+  void dailyTrackerAndTodoCheck() async {
     var list = await db.checkSavedDay();
     DateTime now = DateTime.now();
-
-    bool isSameDay(DateTime? dateA, DateTime? dateB) {
-      return dateA?.year == dateB?.year &&
-          dateA?.month == dateB?.month &&
-          dateA?.day == dateB?.day;
-    }
 
     if (list.isEmpty) {
       await db.resetTime(now.toIso8601String());
@@ -192,14 +256,62 @@ class MyAppState extends ChangeNotifier {
     } else {
       DateTime saved_time = DateTime.parse(list[0]['current_time']);
       if (!isSameDay(now, saved_time)) {
+        await db.resetTime(now.toIso8601String()).then((value) async {
+          await db.unlockAllTrackers().then((value) {
+            importTrackers();
+          });
+          await importTodaysTodoManagers(now).then((value) {
+            importTodo();
+          });
+        });
+        //notifyListeners();
+      }
+    }
+  }
+
+  /*void dailyTodoLoading() async {
+    var list = await db.checkSavedDay();
+    DateTime now = DateTime.now();
+
+    if (list.isEmpty) {
+      await db.resetTime(now.toIso8601String());
+
+      notifyListeners();
+    } else {
+      DateTime saved_time = DateTime.parse(list[0]['current_time']);
+      if (!isSameDay(now, saved_time)) {
+        //print(
+        //'------------------LOAD TO DO AND UNLOCK TRACKERS------------------');
         await db.resetTime(now.toIso8601String());
+
+        importTodaysTodoManagers(now);
+
+        notifyListeners();
+      }
+    }
+  }
+
+  void dailyTrackerUnlock() async {
+    var list = await db.checkSavedDay();
+    DateTime now = DateTime.now();
+
+    if (list.isEmpty) {
+      await db.resetTime(now.toIso8601String());
+
+      notifyListeners();
+    } else {
+      DateTime saved_time = DateTime.parse(list[0]['current_time']);
+      if (!isSameDay(now, saved_time)) {
+        //print('------------------UNLOCK TRACKERS------------------');
+        await db.resetTime(now.toIso8601String());
+
         await db.unlockAllTrackers();
         importTrackers();
 
         notifyListeners();
       }
     }
-  }
+  }*/
 
   // ------ STATS ------
 
@@ -210,6 +322,11 @@ class MyAppState extends ChangeNotifier {
 
   void updateStat(Stat stat) async {
     await db.updateStat(stat);
+    notifyListeners();
+  }
+
+  void deleteStat(Stat stat) async {
+    await db.deleteStat(stat.id!);
     notifyListeners();
   }
 
@@ -243,18 +360,19 @@ class MyAppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void changeTodayTimeBackwards() async {
+  void changeTodayTimeBackwards10days() async {
     String dayBeforeYesterday =
-        DateTime.now().subtract(Duration(days: 2)).toIso8601String();
+        DateTime.now().subtract(Duration(days: 10)).toIso8601String();
 
-    checkDatabase();
+    //checkDatabase();
 
-    print(dayBeforeYesterday);
+    //print(dayBeforeYesterday);
     await db.resetTime(dayBeforeYesterday);
+    //notifyListeners();
   }
 
   void checkDatabase() async {
-    print(await db.readTrackers());
-    print(await db.checkSavedDay());
+    //print(await db.readTrackers());
+    //print(await db.checkSavedDay());
   }
 }

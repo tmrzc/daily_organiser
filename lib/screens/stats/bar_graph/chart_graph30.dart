@@ -200,7 +200,7 @@ class _MyChartGraph30State extends State<MyChartGraph30> {
         maxLines: 2,
         overflow: TextOverflow.fade,
       );
-    } else if (idx == 29) {
+    } else if (idx == 29 && datesList[idx].day >= 4) {
       text = Text(
         '${datesList[idx].day}',
         style: GoogleFonts.poppins(

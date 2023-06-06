@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.daily_organiser">
    <application
-        android:label="daily_organiser"
+        android:label="track."
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

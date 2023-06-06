@@ -36,14 +36,14 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         // APP BAR WITH TITLE OF A SCREEN
         SliverAppBar.medium(
           pinned: true,
-          actions: [
+          /*actions: [
             IconButton(
               onPressed: () {
                 appState.fillUpTrackersStats(80, 100);
               },
               icon: Icon(Icons.factory_outlined),
             ),
-          ],
+          ],*/
           flexibleSpace: FlexibleSpaceBar(
             centerTitle: true,
             title: Text(

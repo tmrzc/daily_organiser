@@ -23,23 +23,42 @@ class JournalScreen extends StatefulWidget {
 }
 
 class _JournalScreenState extends State<JournalScreen> {
+  bool locked = false;
   bool isLoading = false;
   List<Note> notesList = [];
-  String loremIpsum =
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.';
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     loadJournalNotes();
+    //locked = isTodaysJournalCreated(notesList);
   }
 
   Future loadJournalNotes() async {
     setState(() => isLoading = true);
 
-    notesList = await OrganiserDatabase.instance.readAllNotes();
+    notesList = await OrganiserDatabase.instance.readAllNotes().then((value) {
+      locked = isTodaysJournalCreated(value);
+      return value;
+    });
 
-    setState(() => isLoading = false);
+    if (mounted) {
+      setState(() => isLoading = false);
+    }
+  }
+
+  bool isTodaysJournalCreated(List<Note> notesList) {
+    if (notesList.isEmpty) return false;
+
+    Note note = notesList[0];
+    DateTime now = DateTime.now();
+    if (now.year == note.year &&
+        now.month == note.month &&
+        now.day == note.day) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   @override
@@ -50,24 +69,49 @@ class _JournalScreenState extends State<JournalScreen> {
       // APP BAR WITH TITLE OF A SCREEN
       SliverAppBar.medium(
         pinned: true,
-        //floating: true,
-        //snap: true,
         actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => JournalPopup(
-                      modeSelector: PopupMode.create,
-                    ),
-                  ));
-            },
-            icon: Icon(
-              Icons.add,
-              size: 40,
-            ),
-          )
+          isLoading
+              ? Container()
+              : IconButton(
+                  tooltip: locked ? 'ONE NOTE PER DAY' : 'NEW NOTE',
+                  onPressed: () {
+                    if (locked) {
+                      ScaffoldMessenger.of(context).removeCurrentSnackBar();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          showCloseIcon: true,
+                          content: const Text(
+                            'YOU CAN ONLY CREATE\n ONE NOTE PER DAY',
+                            textAlign: TextAlign.center,
+                          ),
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20.0),
+                          ),
+                        ),
+                      );
+                    } else {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => JournalPopup(
+                              modeSelector: PopupMode.create,
+                              theme: widget.theme,
+                            ),
+                          ));
+                    }
+                  },
+                  icon: locked
+                      ? Icon(
+                          Icons.add,
+                          size: 40,
+                          color: widget.theme.disabledColor,
+                        )
+                      : const Icon(
+                          Icons.add,
+                          size: 40,
+                        ),
+                )
         ],
         flexibleSpace: FlexibleSpaceBar(
           centerTitle: false,
@@ -117,6 +161,7 @@ class _JournalScreenState extends State<JournalScreen> {
                               builder: (context) => JournalPopup(
                                 modeSelector: PopupMode.edit,
                                 noteEdited: notesList[index],
+                                theme: widget.theme,
                               ),
                             ));
                       },

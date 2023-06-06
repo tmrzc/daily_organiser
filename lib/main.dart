@@ -42,24 +42,34 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   var currentPageIndex = 0;
   late bool isLoading;
   late bool isLoading3;
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    refreshTodos();
+
+    WidgetsBinding.instance.addObserver(this);
   }
 
-  Future refreshTodos() async {
-    setState(() => isLoading = true);
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    switch (state) {
+      case AppLifecycleState.resumed:
+        Provider.of<MyAppState>(context, listen: false)
+            .dailyTrackerAndTodoCheck();
+        break;
+      default:
+    }
+  }
 
-    Provider.of<MyAppState>(context, listen: false).importTodo();
-
-    setState(() => isLoading = false);
+  @override
+  void dispose() {
+    super.dispose();
+    WidgetsBinding.instance.removeObserver(this);
   }
 
   @override

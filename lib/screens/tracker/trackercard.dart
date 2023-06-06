@@ -9,7 +9,7 @@ import '../../provider.dart';
 import 'trackerscreen.dart';
 import 'package:daily_organiser/database/trackermodel.dart';
 
-enum ActionItems { priorityUp, priorityDown, delete, unlock }
+enum ActionItems { priorityUp, priorityDown, rename, delete, unlock }
 
 class trackerCardListItem extends StatefulWidget {
   trackerCardListItem({
@@ -32,13 +32,15 @@ class trackerCardListItem extends StatefulWidget {
 class _trackerCardListItem extends State<trackerCardListItem> {
   double rating = 0;
   final counterController = TextEditingController();
-  ActionItems? selectedMenu;
+  final _titlecontroller = TextEditingController();
+  final formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
 
     counterController.text = '0';
+    _titlecontroller.text = widget.trackerInfo.name;
     counterController.addListener(counterChanger);
   }
 
@@ -65,7 +67,7 @@ class _trackerCardListItem extends State<trackerCardListItem> {
                 children: [
                   Expanded(
                     child: Text(
-                      '${trackerInfo.name} #${trackerInfo.priority} idx${widget.index}',
+                      trackerInfo.name,
                       style: GoogleFonts.poppins(
                         fontSize: 30,
                         fontWeight: FontWeight.w500,
@@ -80,21 +82,25 @@ class _trackerCardListItem extends State<trackerCardListItem> {
                           ),
                         )
                       : PopupMenuButton<ActionItems>(
-                          initialValue: selectedMenu,
                           onSelected: (ActionItems item) {
                             switch (item) {
                               case ActionItems.priorityUp:
                                 setState(() {
-                                  print('ss ${widget.index}');
+                                  //print('ss ${widget.index}');
                                   appState.trackerPrioritySwap(
                                       widget.index!, true);
                                 });
                                 break;
                               case ActionItems.priorityDown:
                                 setState(() {
-                                  print('ss ${widget.index}');
+                                  //print('ss ${widget.index}');
                                   appState.trackerPrioritySwap(
                                       widget.index!, false);
+                                });
+                                break;
+                              case ActionItems.rename:
+                                setState(() {
+                                  renameDialog(context, appState, trackerInfo);
                                 });
                                 break;
                               case ActionItems.delete:
@@ -104,7 +110,7 @@ class _trackerCardListItem extends State<trackerCardListItem> {
                                 break;
                               case ActionItems.unlock:
                                 setState(() {
-                                  appState.enableTracker(widget.trackerInfo);
+                                  appState.enableTracker(trackerInfo);
                                 });
                                 break;
                               default:
@@ -142,6 +148,21 @@ class _trackerCardListItem extends State<trackerCardListItem> {
                                   Expanded(
                                       child: Text(
                                     'MOVE DOWN',
+                                    textAlign: TextAlign.right,
+                                  ))
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem<ActionItems>(
+                              value: ActionItems.rename,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: const [
+                                  Icon(Icons.edit),
+                                  Expanded(
+                                      child: Text(
+                                    'RENAME',
                                     textAlign: TextAlign.right,
                                   ))
                                 ],
@@ -195,6 +216,87 @@ class _trackerCardListItem extends State<trackerCardListItem> {
         ),
       ),
     );
+  }
+
+  Future<dynamic> renameDialog(
+      BuildContext context, MyAppState appState, Tracker trackerInfo) {
+    return showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Form(
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            key: formKey,
+            child: SimpleDialog(
+              title: const Text("Enter new name"),
+              children: [
+                Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(15, 0, 15, 10),
+                      child: TextFormField(
+                        textCapitalization: TextCapitalization.sentences,
+                        controller: _titlecontroller,
+                        onTap: () => _titlecontroller.clear(),
+                        validator: (String? value) {
+                          return (value != null && value.length < 1)
+                              ? 'Title cannot be empty.'
+                              : null;
+                        },
+                        decoration: InputDecoration(
+                            border: const OutlineInputBorder(),
+                            labelText: 'Title of the tracker',
+                            suffixIcon: IconButton(
+                              onPressed: () => _titlecontroller.clear(),
+                              icon: const Icon(Icons.clear),
+                            )),
+                      ),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            final isValidForm =
+                                formKey.currentState!.validate();
+
+                            if (isValidForm) {
+                              setState(() {
+                                trackerInfo.name = _titlecontroller.text;
+                                appState.updateTracker(trackerInfo);
+                              });
+                              Navigator.pop(context);
+                            }
+                          },
+                          child: const Padding(
+                            padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
+                            child: Text('Rename'),
+                          ),
+                        ),
+                        ElevatedButton(
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateColor.resolveWith(
+                                (states) => widget.theme.shadowColor),
+                          ),
+                          onPressed: () => Navigator.pop(context),
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                            child: Text(
+                              'Cancel',
+                              style: TextStyle(
+                                color: MaterialStateColor.resolveWith(
+                                    (states) => widget.theme.backgroundColor),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                )
+              ],
+            ),
+          );
+        });
   }
 
   Future<dynamic> deleteDialog(

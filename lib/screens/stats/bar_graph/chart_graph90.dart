@@ -198,7 +198,7 @@ class _MyChartGraph90State extends State<MyChartGraph90> {
         maxLines: 2,
         overflow: TextOverflow.fade,
       );
-    } else if (idx == datesList.length - 1) {
+    } else if (idx == datesList.length - 1 && datesList[idx].day >= 4) {
       text = Text(
         '${datesList[idx].day}',
         style: GoogleFonts.poppins(

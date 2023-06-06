@@ -1,4 +1,5 @@
 import 'package:daily_organiser/database/todomodel.dart';
+import 'package:daily_organiser/screens/todo/todoweekmanager.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -21,7 +22,51 @@ class TodoListScreen extends StatefulWidget {
 }
 
 class _TodoListScreenState extends State<TodoListScreen> {
+  late Todo tempTodo;
   bool isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    refreshTodos();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    var appState = context.watch<MyAppState>();
+    if (!appState.isDailyChangeActive) {
+      //setState(() => appState.isDailyChangeActive = true);
+      appState.isDailyChangeActive = true;
+      Provider.of<MyAppState>(context, listen: false)
+          .dailyTrackerAndTodoCheck();
+      appState.isDailyChangeActive = false;
+    }
+
+    //print('------------------CHANGE DEPENDENCIES------------------');
+  }
+
+  Future refreshTodos() async {
+    setState(() => isLoading = true);
+
+    Provider.of<MyAppState>(context, listen: false).importTodo();
+
+    if (mounted) {
+      setState(() => isLoading = false);
+    }
+  }
+
+  Future loadTodos() async {
+    setState(() => isLoading = true);
+
+    var appState = context.watch<MyAppState>();
+    appState.dailyTrackerAndTodoCheck();
+
+    if (mounted) {
+      setState(() => isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -117,12 +162,38 @@ class _TodoListScreenState extends State<TodoListScreen> {
     return SliverAppBar.medium(
       pinned: true,
       actions: [
+        /*IconButton(
+          onPressed: () {
+            appState.changeTodayTimeBackwards10days();
+          },
+          icon: Icon(
+            Icons.circle_outlined,
+            size: 40,
+          ),
+        ),*/
+        IconButton(
+            onPressed: () {
+              ScaffoldMessenger.of(context).removeCurrentSnackBar();
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => TodoManagerScreen(
+                      theme: widget.theme,
+                    ),
+                  ));
+            },
+            icon: const Icon(Icons.checklist_rounded)),
         IconButton(
           onPressed: () {
+            ScaffoldMessenger.of(context).removeCurrentSnackBar();
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => TodoPopup(),
+                  builder: (context) => TodoPopup(
+                    isTodoManager: false,
+                    theme: widget.theme,
+                    isEditing: false,
+                  ),
                 ));
           },
           icon: Icon(
@@ -169,13 +240,17 @@ class _TodoListScreenState extends State<TodoListScreen> {
             ),
             child: ListTile(
               title: Text(
-                list1[index].value,
+                '${list1[index].value}',
                 style: isDone
                     ? TextStyle(
                         decoration: TextDecoration.lineThrough,
                         color: widget.theme.disabledColor,
                       )
-                    : TextStyle(),
+                    : list1[index].manager_id != null
+                        ? TextStyle(
+                            fontStyle: FontStyle.italic,
+                            color: widget.theme.primaryColor)
+                        : const TextStyle(),
               ),
               leading: isDone
                   ? Checkbox(
@@ -184,10 +259,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
                       onChanged: (bool? value) {
                         setState(() {
                           list1[index].isDone = value!;
-                          Timer(const Duration(milliseconds: 200), () {
-                            appState.switchListsTodo(
-                                list1, list2, list1[index], index);
-                          });
+                          appState.switchListsTodo(
+                              list1, list2, list1[index], index);
                         });
                       },
                     )
@@ -196,10 +269,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
                       onChanged: (bool? value) {
                         setState(() {
                           list1[index].isDone = value!;
-                          Timer(const Duration(milliseconds: 200), () {
-                            appState.switchListsTodo(
-                                list1, list2, list1[index], index);
-                          });
+                          appState.switchListsTodo(
+                              list1, list2, list1[index], index);
                         });
                       },
                     ),
@@ -207,13 +278,38 @@ class _TodoListScreenState extends State<TodoListScreen> {
             onDismissed: (DismissDirection direction) {
               appState.db.deleteTodo(list1[index]);
               setState(() {
+                tempTodo = list1[index];
                 list1.removeAt(index);
               });
+              ScaffoldMessenger.of(context).removeCurrentSnackBar();
+              ScaffoldMessenger.of(context).showSnackBar(
+                snackBarTodo(appState, isDone),
+              );
             },
           );
         },
         childCount: list1.length,
       ),
+    );
+  }
+
+  SnackBar snackBarTodo(MyAppState appState, bool isDone) {
+    return SnackBar(
+      duration: Duration(milliseconds: 2500),
+      content: const Text(
+        'REVERSE CHANGES?',
+        textAlign: TextAlign.center,
+      ),
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20.0),
+      ),
+      action: SnackBarAction(
+          label: 'YES',
+          onPressed: () {
+            appState.addTodo(tempTodo.value, isDone);
+          }),
+      showCloseIcon: true,
     );
   }
 
@@ -233,13 +329,14 @@ class _TodoListScreenState extends State<TodoListScreen> {
                 ),
               ),
               TextButton(
-                onPressed: () {
+                onLongPress: () {
                   setState(() {
                     appState.clearlist();
                   });
                 },
+                onPressed: () {},
                 child: Text(
-                  'Clear all done tasks',
+                  'HOLD TO CLEAR DONE TASKS',
                   style: TextStyle(
                     color: widget.theme.disabledColor,
                   ),
