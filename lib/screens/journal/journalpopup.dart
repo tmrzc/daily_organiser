@@ -94,6 +94,7 @@ class _JournalPopup extends State<JournalPopup> {
                 ? <Widget>[
                     Expanded(
                       child: TextFormField(
+                        textCapitalization: TextCapitalization.sentences,
                         controller: _textcontroller,
                         maxLines: null,
                         minLines: null,
