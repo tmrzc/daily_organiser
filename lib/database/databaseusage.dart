@@ -3,9 +3,7 @@ import 'package:sqflite/sqflite.dart';
 import 'todomodel.dart';
 import 'trackermodel.dart';
 import 'statsmodel.dart';
-import 'notemodel.dart';
 import 'package:path/path.dart';
-import 'dart:developer';
 import 'todoweeklymodel.dart';
 
 class OrganiserDatabase {

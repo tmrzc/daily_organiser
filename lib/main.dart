@@ -54,6 +54,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
   }
 
+  //  CHECKING IF DATE CHANGED UPON RESUMING THE APP
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
@@ -95,10 +96,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
             icon: Icon(Icons.note_alt),
             label: 'TRACKERS',
           ),
-          /*NavigationDestination(
-            icon: Icon(Icons.line_axis_outlined),
-            label: 'STATS',
-          ),*/
           NavigationDestination(
             icon: Icon(Icons.library_books_outlined),
             label: 'JOURNAL',
@@ -108,7 +105,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       body: <Widget>[
         TodoListScreen(theme: theme),
         TrackerScreen(theme: theme),
-        //StatisticsScreen(theme: theme),
         JournalScreen(theme: theme),
       ][currentPageIndex],
     );

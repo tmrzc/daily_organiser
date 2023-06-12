@@ -60,46 +60,6 @@ class MyAppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void importTodoFromManager(TodoManager tM) {
-    var now = DateTime.now();
-    List<bool> managersDays = [
-      tM.mon,
-      tM.tue,
-      tM.wed,
-      tM.thu,
-      tM.fr,
-      tM.sat,
-      tM.sun
-    ];
-
-    if (managersDays[now.weekday - 1]) {
-      addTodo(tM.title, false, tM);
-    }
-    notifyListeners();
-  }
-
-  Future<int> importTodaysTodoManagers(DateTime now) async {
-    List<TodoManager> recursiveTodoManagers =
-        await db.readManagersOfSelectedDay(now.weekday);
-
-    for (int i = 0; i < recursiveTodoManagers.length; i++) {
-      addTodo(recursiveTodoManagers[i].title, false, recursiveTodoManagers[i]);
-    }
-
-    notifyListeners();
-    return recursiveTodoManagers.length;
-  }
-
-  void deleteTodoManager(TodoManager todoManager) async {
-    await db.deleteTodoManager(todoManager);
-    notifyListeners();
-  }
-
-  void deleteTodoFromManager(TodoManager todoManager) async {
-    await db.deleteTodoFromManager(todoManager);
-    notifyListeners();
-  }
-
   // CREATING NEW TO-DO LIST ELEMENTS
   Future<void> addTodo(var title, bool isDone,
       [TodoManager? todoManager]) async {
@@ -140,6 +100,48 @@ class MyAppState extends ChangeNotifier {
   void clearlist() {
     db.deleteDoneTodo();
     DoneList.clear();
+    notifyListeners();
+  }
+
+  // ------- TO DO MANAGERS -------
+
+  void importTodoFromManager(TodoManager tM) {
+    var now = DateTime.now();
+    List<bool> managersDays = [
+      tM.mon,
+      tM.tue,
+      tM.wed,
+      tM.thu,
+      tM.fr,
+      tM.sat,
+      tM.sun
+    ];
+
+    if (managersDays[now.weekday - 1]) {
+      addTodo(tM.title, false, tM);
+    }
+    notifyListeners();
+  }
+
+  Future<int> importTodaysTodoManagers(DateTime now) async {
+    List<TodoManager> recursiveTodoManagers =
+        await db.readManagersOfSelectedDay(now.weekday);
+
+    for (int i = 0; i < recursiveTodoManagers.length; i++) {
+      addTodo(recursiveTodoManagers[i].title, false, recursiveTodoManagers[i]);
+    }
+
+    notifyListeners();
+    return recursiveTodoManagers.length;
+  }
+
+  void deleteTodoManager(TodoManager todoManager) async {
+    await db.deleteTodoManager(todoManager);
+    notifyListeners();
+  }
+
+  void deleteTodoFromManager(TodoManager todoManager) async {
+    await db.deleteTodoFromManager(todoManager);
     notifyListeners();
   }
 
@@ -264,54 +266,9 @@ class MyAppState extends ChangeNotifier {
             importTodo();
           });
         });
-        //notifyListeners();
       }
     }
   }
-
-  /*void dailyTodoLoading() async {
-    var list = await db.checkSavedDay();
-    DateTime now = DateTime.now();
-
-    if (list.isEmpty) {
-      await db.resetTime(now.toIso8601String());
-
-      notifyListeners();
-    } else {
-      DateTime saved_time = DateTime.parse(list[0]['current_time']);
-      if (!isSameDay(now, saved_time)) {
-        //print(
-        //'------------------LOAD TO DO AND UNLOCK TRACKERS------------------');
-        await db.resetTime(now.toIso8601String());
-
-        importTodaysTodoManagers(now);
-
-        notifyListeners();
-      }
-    }
-  }
-
-  void dailyTrackerUnlock() async {
-    var list = await db.checkSavedDay();
-    DateTime now = DateTime.now();
-
-    if (list.isEmpty) {
-      await db.resetTime(now.toIso8601String());
-
-      notifyListeners();
-    } else {
-      DateTime saved_time = DateTime.parse(list[0]['current_time']);
-      if (!isSameDay(now, saved_time)) {
-        //print('------------------UNLOCK TRACKERS------------------');
-        await db.resetTime(now.toIso8601String());
-
-        await db.unlockAllTrackers();
-        importTrackers();
-
-        notifyListeners();
-      }
-    }
-  }*/
 
   // ------ STATS ------
 
@@ -372,7 +329,7 @@ class MyAppState extends ChangeNotifier {
   }
 
   void checkDatabase() async {
-    //print(await db.readTrackers());
-    //print(await db.checkSavedDay());
+    inspect(await db.readTrackers());
+    print(await db.checkSavedDay());
   }
 }
