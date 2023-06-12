@@ -114,6 +114,7 @@ class _JournalPopup extends State<JournalPopup> {
                     const SizedBox(height: 5),
                     Expanded(
                       child: TextFormField(
+                        textCapitalization: TextCapitalization.sentences,
                         controller: _textcontroller,
                         maxLines: null,
                         minLines: null,
