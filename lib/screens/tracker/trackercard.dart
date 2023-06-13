@@ -434,14 +434,14 @@ class _trackerCardListItem extends State<trackerCardListItem> {
               Slider(
                 onChangeEnd: (double newValue) {
                   Timer(Duration(milliseconds: 200), () {
-                    appState.saveValueToTracker(tracker, widget.rating!);
+                    appState.saveValueToTracker(tracker, widget.rating);
                   });
                 },
-                value: widget.rating!,
+                value: widget.rating,
                 divisions: tracker.range,
                 min: 0,
                 max: tracker.range.toDouble(),
-                label: '${widget.rating!.round()}',
+                label: '${widget.rating.round()}',
                 onChanged: (newRating) {
                   setState(() {
                     widget.rating = newRating.roundToDouble();
@@ -470,7 +470,7 @@ class _trackerCardListItem extends State<trackerCardListItem> {
             padding: const EdgeInsets.fromLTRB(11, 11, 11, 11),
             child: RatingBar(
               glow: false,
-              initialRating: widget.rating!,
+              initialRating: widget.rating,
               itemCount: 5,
               itemSize: 36,
               itemPadding: EdgeInsets.fromLTRB(6, 0, 6, 0),
@@ -490,7 +490,7 @@ class _trackerCardListItem extends State<trackerCardListItem> {
               onRatingUpdate: (value) {
                 widget.rating = value;
                 Timer(Duration(milliseconds: 200), () {
-                  appState.saveValueToTracker(tracker, widget.rating!);
+                  appState.saveValueToTracker(tracker, widget.rating);
                 });
               },
             ),
@@ -577,7 +577,7 @@ class _trackerCardListItem extends State<trackerCardListItem> {
                         onPressed: () {
                           setState(() {
                             appState.saveValueToTracker(
-                                widget.trackerInfo, widget.rating!);
+                                widget.trackerInfo, widget.rating);
                           });
                         },
                       )
