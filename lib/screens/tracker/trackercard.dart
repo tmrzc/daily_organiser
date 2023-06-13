@@ -18,19 +18,20 @@ class trackerCardListItem extends StatefulWidget {
     required this.trackerInfo,
     this.index,
     this.isPreview = false,
+    this.rating = 0,
   });
 
   final ThemeData theme;
   Tracker trackerInfo;
   int? index;
   bool isPreview;
+  double rating;
 
   @override
   State<trackerCardListItem> createState() => _trackerCardListItem();
 }
 
 class _trackerCardListItem extends State<trackerCardListItem> {
-  double rating = 0;
   final counterController = TextEditingController();
   final _titlecontroller = TextEditingController();
   final formKey = GlobalKey<FormState>();
@@ -39,6 +40,7 @@ class _trackerCardListItem extends State<trackerCardListItem> {
   void initState() {
     super.initState();
 
+    //widget.rating = 0;
     counterController.text = '0';
     _titlecontroller.text = widget.trackerInfo.name;
     counterController.addListener(counterChanger);
@@ -53,12 +55,11 @@ class _trackerCardListItem extends State<trackerCardListItem> {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
-    var trackerInfo = widget.trackerInfo;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
       child: Card(
-        color: trackerColors[trackerInfo.color]['theme'],
+        color: trackerColors[widget.trackerInfo.color]['theme'],
         child: Column(
           children: [
             Padding(
@@ -67,7 +68,7 @@ class _trackerCardListItem extends State<trackerCardListItem> {
                 children: [
                   Expanded(
                     child: Text(
-                      trackerInfo.name,
+                      widget.trackerInfo.name,
                       style: GoogleFonts.poppins(
                         fontSize: 30,
                         fontWeight: FontWeight.w500,
@@ -81,127 +82,7 @@ class _trackerCardListItem extends State<trackerCardListItem> {
                             Icons.more_vert_rounded,
                           ),
                         )
-                      : PopupMenuButton<ActionItems>(
-                          onSelected: (ActionItems item) {
-                            switch (item) {
-                              case ActionItems.priorityUp:
-                                setState(() {
-                                  //print('ss ${widget.index}');
-                                  appState.trackerPrioritySwap(
-                                      widget.index!, true);
-                                });
-                                break;
-                              case ActionItems.priorityDown:
-                                setState(() {
-                                  //print('ss ${widget.index}');
-                                  appState.trackerPrioritySwap(
-                                      widget.index!, false);
-                                });
-                                break;
-                              case ActionItems.rename:
-                                setState(() {
-                                  renameDialog(context, appState, trackerInfo);
-                                });
-                                break;
-                              case ActionItems.delete:
-                                setState(() {
-                                  deleteDialog(context, appState, trackerInfo);
-                                });
-                                break;
-                              case ActionItems.unlock:
-                                setState(() {
-                                  appState.enableTracker(trackerInfo);
-                                });
-                                break;
-                              default:
-                            }
-                          },
-                          itemBuilder: (BuildContext context) =>
-                              <PopupMenuEntry<ActionItems>>[
-                            PopupMenuItem<ActionItems>(
-                              enabled: widget.index == 0 ? false : true,
-                              value: ActionItems.priorityUp,
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: const [
-                                  Icon(Icons.arrow_upward_rounded),
-                                  Expanded(
-                                      child: Text(
-                                    'MOVE UP',
-                                    textAlign: TextAlign.right,
-                                  ))
-                                ],
-                              ),
-                            ),
-                            PopupMenuItem<ActionItems>(
-                              enabled:
-                                  widget.index == (appState.trackers.length - 1)
-                                      ? false
-                                      : true,
-                              value: ActionItems.priorityDown,
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: const [
-                                  Icon(Icons.arrow_downward_rounded),
-                                  Expanded(
-                                      child: Text(
-                                    'MOVE DOWN',
-                                    textAlign: TextAlign.right,
-                                  ))
-                                ],
-                              ),
-                            ),
-                            PopupMenuItem<ActionItems>(
-                              value: ActionItems.rename,
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: const [
-                                  Icon(Icons.edit),
-                                  Expanded(
-                                      child: Text(
-                                    'RENAME',
-                                    textAlign: TextAlign.right,
-                                  ))
-                                ],
-                              ),
-                            ),
-                            PopupMenuItem<ActionItems>(
-                              value: ActionItems.delete,
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: const [
-                                  Icon(Icons.delete),
-                                  Expanded(
-                                      child: Text(
-                                    'DELETE',
-                                    textAlign: TextAlign.right,
-                                  ))
-                                ],
-                              ),
-                            ),
-                            PopupMenuItem<ActionItems>(
-                              enabled:
-                                  widget.trackerInfo.isLocked ? true : false,
-                              value: ActionItems.unlock,
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: const [
-                                  Icon(Icons.lock_open_rounded),
-                                  Expanded(
-                                      child: Text(
-                                    "UNLOCK",
-                                    textAlign: TextAlign.right,
-                                  ))
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
+                      : popupMenu(appState, context, widget.trackerInfo),
                 ],
               ),
             ),
@@ -209,12 +90,126 @@ class _trackerCardListItem extends State<trackerCardListItem> {
               padding: const EdgeInsets.fromLTRB(0, 10, 20, 10),
               child: typeDependantOptions(
                 widget.isPreview,
-                trackerInfo,
+                widget.trackerInfo,
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  PopupMenuButton<ActionItems> popupMenu(
+      MyAppState appState, BuildContext context, Tracker trackerInfo) {
+    return PopupMenuButton<ActionItems>(
+      onSelected: (ActionItems item) {
+        switch (item) {
+          case ActionItems.priorityUp:
+            setState(() {
+              //print('ss ${widget.index}');
+              appState.trackerPrioritySwap(widget.index!, true);
+            });
+            break;
+          case ActionItems.priorityDown:
+            setState(() {
+              //print('ss ${widget.index}');
+              appState.trackerPrioritySwap(widget.index!, false);
+            });
+            break;
+          case ActionItems.rename:
+            setState(() {
+              renameDialog(context, appState, trackerInfo);
+            });
+            break;
+          case ActionItems.delete:
+            setState(() {
+              deleteDialog(context, appState, trackerInfo);
+            });
+            break;
+          case ActionItems.unlock:
+            setState(() {
+              appState.enableTracker(trackerInfo);
+            });
+            break;
+          default:
+        }
+      },
+      itemBuilder: (BuildContext context) => <PopupMenuEntry<ActionItems>>[
+        PopupMenuItem<ActionItems>(
+          enabled: widget.index == 0 ? false : true,
+          value: ActionItems.priorityUp,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: const [
+              Icon(Icons.arrow_upward_rounded),
+              Expanded(
+                  child: Text(
+                'MOVE UP',
+                textAlign: TextAlign.right,
+              ))
+            ],
+          ),
+        ),
+        PopupMenuItem<ActionItems>(
+          enabled:
+              widget.index == (appState.trackers.length - 1) ? false : true,
+          value: ActionItems.priorityDown,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: const [
+              Icon(Icons.arrow_downward_rounded),
+              Expanded(
+                  child: Text(
+                'MOVE DOWN',
+                textAlign: TextAlign.right,
+              ))
+            ],
+          ),
+        ),
+        PopupMenuItem<ActionItems>(
+          value: ActionItems.rename,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: const [
+              Icon(Icons.edit),
+              Expanded(
+                  child: Text(
+                'RENAME',
+                textAlign: TextAlign.right,
+              ))
+            ],
+          ),
+        ),
+        PopupMenuItem<ActionItems>(
+          value: ActionItems.delete,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: const [
+              Icon(Icons.delete),
+              Expanded(
+                  child: Text(
+                'DELETE',
+                textAlign: TextAlign.right,
+              ))
+            ],
+          ),
+        ),
+        PopupMenuItem<ActionItems>(
+          enabled: widget.trackerInfo.isLocked ? true : false,
+          value: ActionItems.unlock,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: const [
+              Icon(Icons.lock_open_rounded),
+              Expanded(
+                  child: Text(
+                "UNLOCK",
+                textAlign: TextAlign.right,
+              ))
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -439,17 +434,17 @@ class _trackerCardListItem extends State<trackerCardListItem> {
               Slider(
                 onChangeEnd: (double newValue) {
                   Timer(Duration(milliseconds: 200), () {
-                    appState.saveValueToTracker(tracker, rating);
+                    appState.saveValueToTracker(tracker, widget.rating!);
                   });
                 },
-                value: rating,
+                value: widget.rating!,
                 divisions: tracker.range,
                 min: 0,
                 max: tracker.range.toDouble(),
-                label: '${rating.round()}',
+                label: '${widget.rating!.round()}',
                 onChanged: (newRating) {
                   setState(() {
-                    rating = newRating.roundToDouble();
+                    widget.rating = newRating.roundToDouble();
                     //appState.saveValueToTracker(widget.trackerInfo, rating);
                   });
                 },
@@ -475,7 +470,7 @@ class _trackerCardListItem extends State<trackerCardListItem> {
             padding: const EdgeInsets.fromLTRB(11, 11, 11, 11),
             child: RatingBar(
               glow: false,
-              initialRating: rating,
+              initialRating: widget.rating!,
               itemCount: 5,
               itemSize: 36,
               itemPadding: EdgeInsets.fromLTRB(6, 0, 6, 0),
@@ -493,9 +488,9 @@ class _trackerCardListItem extends State<trackerCardListItem> {
                     color: Colors.amber,
                   )),
               onRatingUpdate: (value) {
-                rating = value;
+                widget.rating = value;
                 Timer(Duration(milliseconds: 200), () {
-                  appState.saveValueToTracker(tracker, rating);
+                  appState.saveValueToTracker(tracker, widget.rating!);
                 });
               },
             ),
@@ -525,7 +520,7 @@ class _trackerCardListItem extends State<trackerCardListItem> {
                     setState(() {
                       counterController.text =
                           subtractFromController(counterController, 1);
-                      rating = double.parse(counterController.text);
+                      widget.rating = double.parse(counterController.text);
                     });
                   },
                   child: Icon(Icons.remove),
@@ -536,14 +531,15 @@ class _trackerCardListItem extends State<trackerCardListItem> {
                       textAlign: TextAlign.center,
                       onChanged: (value) {
                         setState(() {
-                          rating = double.tryParse(counterController.text) ?? 0;
+                          widget.rating =
+                              double.tryParse(counterController.text) ?? 0;
                         });
                       },
                       onSubmitted: (value) {
                         setState(() {
                           counterController.text =
                               emptyToZero(counterController);
-                          rating = double.parse(counterController.text);
+                          widget.rating = double.parse(counterController.text);
                         });
                       },
                       keyboardType: TextInputType.number,
@@ -558,7 +554,7 @@ class _trackerCardListItem extends State<trackerCardListItem> {
                     setState(() {
                       counterController.text =
                           addToController(counterController, 1);
-                      rating = double.parse(counterController.text);
+                      widget.rating = double.parse(counterController.text);
                     });
                   },
                   child: Icon(Icons.add),
@@ -581,7 +577,7 @@ class _trackerCardListItem extends State<trackerCardListItem> {
                         onPressed: () {
                           setState(() {
                             appState.saveValueToTracker(
-                                widget.trackerInfo, rating);
+                                widget.trackerInfo, widget.rating!);
                           });
                         },
                       )

@@ -171,12 +171,17 @@ class MyAppState extends ChangeNotifier {
 
   void saveValueToTracker(Tracker tracker, double value,
       [int year = 0, int month = 0, int day = 0]) async {
-    tracker.value = value;
-    tracker.isLocked = true;
     DateTime todaysDate = DateTime.now();
+    DateTime chosenTime = DateTime.utc(year, month, day);
+
+    if (chosenTime.difference(todaysDate).inDays == 0 ||
+        ((year == 0 && month == 0) && day == 0)) {
+      tracker.value = value;
+      tracker.isLocked = true;
+    }
 
     if (year != 0 && month != 0 && day != 0) {
-      todaysDate = DateTime.utc(year, month, day);
+      todaysDate = chosenTime;
     }
 
     Stat tracker_stat = Stat(
@@ -184,7 +189,7 @@ class MyAppState extends ChangeNotifier {
       year: todaysDate.year,
       month: todaysDate.month,
       day: todaysDate.day,
-      value: tracker.value!,
+      value: value,
     );
     tracker_stat = await db.createStat(tracker_stat);
     tracker.stats_id = tracker_stat.id;
